@@ -141,6 +141,41 @@
     mix-blend-mode:screen;
     pointer-events:none;
   }
+  .photo-card{
+    display:none;
+    max-width:220px;
+    margin:0 auto 26px;
+  }
+  .photo-card .frame{
+    position:relative;
+    border-radius:6px;
+    overflow:hidden;
+    border:1px solid var(--edge-lit);
+    background:var(--card);
+  }
+  .photo-card img{
+    width:100%;height:auto;display:block;
+    filter:saturate(.82) brightness(.88);
+  }
+  .photo-card svg.overlay{
+    position:absolute;inset:0;width:100%;height:100%;
+    pointer-events:none;
+  }
+  .photo-card .trace{
+    fill:none;
+    stroke-width:2.2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 0 4px currentColor);
+    opacity:.9;
+  }
+  .photo-card .cap{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:9px;
+  }
+
   #open-scr h2{
     font-family:'Fraunces',serif;font-weight:300;
     font-size:19px;margin-bottom:6px;
@@ -329,6 +364,14 @@
     </div>
     <h2 id="scanStatus">Opening your photo</h2>
     <p>This takes a few moments. Benjamin is looking closely.</p>
+  </div>
+
+  <div class="photo-card" id="photoCard">
+    <div class="frame">
+      <img id="logPhoto" alt="Your palm photo">
+      <svg class="overlay" id="traceOverlay" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="cap">What Benjamin is tracing as he reads</div>
   </div>
 
   <div id="log" aria-live="polite" style="display:none;"></div>
@@ -546,7 +589,7 @@
   }
 
   function parse(text){
-    var keys=['HEART','HEAD','LIFE','FATE','CLASH'], r={};
+    var keys=['HEART','HEAD','LIFE','FATE','CLASH','COORDS'], r={};
     for(var i=0;i<keys.length;i++){
       var tag='###'+keys[i]+'###';
       var s=text.indexOf(tag);
@@ -558,7 +601,41 @@
       }
       r[keys[i]]=text.slice(from,to).trim();
     }
+    if(r.COORDS){
+      try{ r.coordsData=JSON.parse(r.COORDS); }catch(e){ r.coordsData={}; }
+    } else {
+      r.coordsData={};
+    }
     return r;
+  }
+
+  var TRACE_COLORS={ HEART:'#E0A24A', HEAD:'#F0BC6C', LIFE:'#B5695A', FATE:'#9C8FA8' };
+
+  function drawTrace(key, points){
+    if(!points || points.length < 2) return;
+    var overlay=document.getElementById('traceOverlay');
+    if(!overlay) return;
+    var d = 'M ' + points.map(function(p){ return p[0]+','+p[1]; }).join(' L ');
+    var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', d);
+    path.setAttribute('class','trace');
+    path.style.color = TRACE_COLORS[key] || 'var(--lamp)';
+    path.setAttribute('stroke','currentColor');
+    overlay.appendChild(path);
+
+    if(slow){ return; }
+
+    try{
+      var len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      path.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1)';
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          path.style.strokeDashoffset = '0';
+        });
+      });
+    }catch(e){}
   }
 
   async function getReading(){
@@ -577,6 +654,10 @@
     await pause(1050);
     await say(cfg.intro,{aside:true});
     await wait(readPause(cfg.intro));
+
+    if(cfg.points && cfg.points.length){
+      drawTrace(cfg.coordKey, cfg.points);
+    }
 
     var parts=chunk(cfg.text,2);
     for(var i=0;i<parts.length;i++){
@@ -603,6 +684,13 @@
     log.style.display='block';
     openScr.style.display='none';
 
+    var logPhoto=document.getElementById('logPhoto');
+    var photoCard=document.getElementById('photoCard');
+    if(logPhoto && photoCard){
+      logPhoto.src = photo;
+      photoCard.style.display='block';
+    }
+
     await pause(1100);
     var openLine = name? ('Alright '+name+'. Let me look at this properly.') : 'Alright. Let me look at this properly.';
     await say(openLine,{aside:true});
@@ -611,6 +699,7 @@
     await line({
       tag:'HEART LINE', text:s.HEART,
       intro:'Starting with the heart line.',
+      coordKey:'HEART', points:s.coordsData && s.coordsData.HEART,
       check:{
         key:'heart',
         q:'Is that how you actually love, or how people assume you love?',
@@ -622,6 +711,7 @@
     await line({
       tag:'HEAD LINE', text:s.HEAD,
       intro:'Now the head line. This one usually tells on people.',
+      coordKey:'HEAD', points:s.coordsData && s.coordsData.HEAD,
       check:{
         key:'head',
         q:'Do you decide that way on purpose, or does it just happen?',
@@ -633,6 +723,7 @@
     await line({
       tag:'LIFE LINE', text:s.LIFE,
       intro:'Give me a second with the life line.',
+      coordKey:'LIFE', points:s.coordsData && s.coordsData.LIFE,
       check:{
         key:'life',
         q:'Has this been true for a while, or has something shifted lately?',
@@ -644,6 +735,7 @@
     await line({
       tag:'FATE LINE', text:s.FATE,
       intro:'And the fate line. There is something here.',
+      coordKey:'FATE', points:s.coordsData && s.coordsData.FATE,
       check:{
         key:'fate',
         q:'Does your sense of direction feel steady right now, or shaky?',
