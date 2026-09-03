@@ -41,6 +41,7 @@
   }
   .prog i.done{background:var(--lamp);}
   .prog i.now{background:var(--lamp-hi);animation:pulse 1.2s ease-in-out infinite;}
+  .prog i.error{background:#B5695A;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 
   #photoAsk{display:none;text-align:center;padding:60px 10px;}
@@ -315,11 +316,25 @@
     if(!missing.length) return;
     upsell.style.display='block';
     missing.forEach(function(k){
-      var a=document.createElement('a');
-      a.className='up-card'; a.href='/decision.html';
-      a.innerHTML='<h4>'+LABELS[k]+'</h4><p>'+TEASERS[k]+'</p>';
-      upGrid.appendChild(a);
+      var div=document.createElement('div');
+      div.className='up-card';
+      div.innerHTML='<h4>'+LABELS[k]+'</h4><p>'+TEASERS[k]+'</p>';
+      upGrid.appendChild(div);
     });
+
+    var topUpPrice = Math.max(6, 24 - cats.length*9);
+    var btnWrap=document.createElement('div');
+    btnWrap.style.marginTop='16px';
+    var btn=document.createElement('button');
+    btn.type='button';
+    btn.className='btn primary';
+    btn.style.width='100%';
+    btn.textContent='Complete your set for $'+topUpPrice;
+    btn.addEventListener('click',function(){
+      window.location.href='/checkout.html?topup=1';
+    });
+    btnWrap.appendChild(btn);
+    upsell.appendChild(btnWrap);
   }
 
   function buildPdf(cats, reportData){
@@ -544,21 +559,118 @@
     if (e && e.message) return e.message;
     return 'Something went wrong preparing your reading.';
   }
+  function errorKind(e){
+    return (e && e.kind) ? e.kind : 'error';
+  }
+
+  function renderReportError(category, message, kind){
+    var wrap=document.createElement('div');
+    wrap.className='report';
+    wrap.id='rep-'+category;
+    var h=document.createElement('h1');
+    h.textContent=LABELS[category];
+    wrap.appendChild(h);
+
+    var box=document.createElement('div');
+    box.style.border='1px solid rgba(181,105,90,.45)';
+    box.style.background='rgba(181,105,90,.10)';
+    box.style.borderRadius='3px';
+    box.style.padding='20px';
+
+    var p=document.createElement('p');
+    p.style.marginBottom='14px';
+    p.textContent=message || 'This one did not come through.';
+    box.appendChild(p);
+
+    if(kind==='rejected' && category==='traits'){
+      var drop=document.createElement('div');
+      drop.className='drop'; drop.tabIndex=0;
+      drop.innerHTML='<div class="drop-title">Add a different photo of your non-dominant hand</div><div class="drop-sub">Good light, palm open, fingers relaxed.</div>';
+      var input=document.createElement('input');
+      input.type='file'; input.accept='image/*'; input.style.display='none';
+      function openPicker(){ input.click(); }
+      drop.addEventListener('click',openPicker);
+      drop.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openPicker(); } });
+      input.addEventListener('change',async function(){
+        var file=input.files[0];
+        if(!file) return;
+        var reader=new FileReader();
+        reader.onload=async function(ev){
+          try{ sessionStorage.setItem('benjamin_photo2_preview', ev.target.result); }catch(x){}
+          drop.textContent='Trying again with this photo...';
+          try{
+            var sections=await fetchReport(category);
+            reportData[category]=sections;
+            wrap.remove();
+            renderReport(category, sections);
+            showTab(category);
+            setProg(owned.categories.indexOf(category),'done');
+          }catch(e2){
+            wrap.remove();
+            renderReportError(category, errorText(e2), errorKind(e2));
+            showTab(category);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+      box.appendChild(drop);
+      box.appendChild(input);
+    } else {
+      var retryBtn=document.createElement('button');
+      retryBtn.type='button';
+      retryBtn.className='btn primary';
+      retryBtn.style.display='inline-flex';
+      retryBtn.style.width='auto';
+      retryBtn.style.padding='11px 20px';
+      retryBtn.textContent='Try this one again';
+      retryBtn.addEventListener('click',async function(){
+        retryBtn.disabled=true;
+        retryBtn.textContent='Writing again';
+        try{
+          var sections=await fetchReport(category);
+          reportData[category]=sections;
+          wrap.remove();
+          renderReport(category, sections);
+          showTab(category);
+          setProg(owned.categories.indexOf(category),'done');
+        }catch(e){
+          retryBtn.disabled=false;
+          retryBtn.textContent='Try this one again';
+          p.textContent=errorText(e);
+        }
+      });
+      box.appendChild(retryBtn);
+    }
+
+    wrap.appendChild(box);
+    reportsEl.appendChild(wrap);
+  }
 
   (async function(){
     try{
       await ensureTraitsPhoto();
 
+      var anySucceeded=false;
       for(var i=0;i<owned.categories.length;i++){
         setProg(i,'now');
         var cat=owned.categories[i];
         loadSub.textContent = owned.categories.length>1
           ? ('Writing '+LABELS[cat]+' ('+(i+1)+' of '+owned.categories.length+')')
           : 'This can take a little while, Benjamin is writing this specifically for you.';
-        var sections = await fetchReport(cat, i);
-        reportData[cat]=sections;
-        renderReport(cat, sections);
-        setProg(i,'done');
+        try{
+          var sections = await fetchReport(cat, i);
+          reportData[cat]=sections;
+          renderReport(cat, sections);
+          setProg(i,'done');
+          anySucceeded=true;
+        }catch(catErr){
+          renderReportError(cat, errorText(catErr), errorKind(catErr));
+          setProg(i,'error');
+        }
+      }
+
+      if(!anySucceeded){
+        throw 'None of your reports came through. Please try again.';
       }
 
       var purchasedNames = owned.categories.map(function(c){ return LABELS[c]; }).join(', ');
@@ -569,11 +681,13 @@
       banner.appendChild(bannerText);
 
       buildTabs(owned.categories);
-      showTab(owned.categories[0]);
+      var firstOk = owned.categories.find(function(c){ return reportData[c]; }) || owned.categories[0];
+      showTab(firstOk);
       buildUpsell(owned.categories);
 
       document.getElementById('pdfBtn').addEventListener('click',function(){
-        buildPdf(owned.categories, reportData);
+        var readyCats = owned.categories.filter(function(c){ return reportData[c]; });
+        buildPdf(readyCats, reportData);
       });
 
       load.style.display='none';
