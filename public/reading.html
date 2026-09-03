@@ -405,7 +405,35 @@
     return result;
   }
 
-  function appendBubble({ type, label, text, avatar }){
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function typeText(el, text, charsPerSecond){
+    return new Promise(resolve => {
+      if (prefersReducedMotion) {
+        el.textContent = text;
+        resolve();
+        return;
+      }
+      let i = 0;
+      const msPerChar = 1000 / charsPerSecond;
+      // Batch a few characters per tick for smoother, less jittery pacing on longer text.
+      const step = Math.max(1, Math.round(text.length / 220));
+      function tick(){
+        i += step;
+        if (i >= text.length) {
+          el.textContent = text;
+          resolve();
+          return;
+        }
+        el.textContent = text.slice(0, i);
+        el.parentElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        setTimeout(tick, msPerChar * step);
+      }
+      tick();
+    });
+  }
+
+  async function appendBubble({ type, label, text, avatar, typewriter }){
     const msg = document.createElement('div');
     msg.className = 'msg';
     if (avatar) {
@@ -428,11 +456,19 @@
       bubble.appendChild(lab);
     }
     const p = document.createElement('div');
-    p.textContent = text;
     bubble.appendChild(p);
     msg.appendChild(bubble);
     chatLog.appendChild(msg);
     msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    if (typewriter === false) {
+      p.textContent = text;
+    } else {
+      // Commentary lines type faster (feels conversational); section readings type
+      // slightly slower (feels considered, and stays readable while still moving).
+      const speed = type === 'commentary' ? 38 : 55;
+      await typeText(p, text, speed);
+    }
     return msg;
   }
 
@@ -457,41 +493,41 @@
     chatLog.style.display = 'block';
     connectingScreen.style.display = 'none';
 
+    await showTyping(1200);
+    await appendBubble({ type: 'commentary', text: 'Alright. Let me look at this properly.', avatar: true });
+    await wait(500);
+
     await showTyping(1400);
-    appendBubble({ type: 'commentary', text: 'Alright. Let me look at this properly.', avatar: true });
-    await wait(1200);
+    await appendBubble({ type: 'section', label: 'HEART LINE', text: sections.HEART, avatar: true });
+    await wait(700);
+
+    await showTyping(1000);
+    await appendBubble({ type: 'commentary', text: 'Now the head line. This one usually tells on people.', avatar: true });
+    await wait(500);
+
+    await showTyping(1400);
+    await appendBubble({ type: 'section', label: 'HEAD LINE', text: sections.HEAD, avatar: true });
+    await wait(700);
+
+    await showTyping(1000);
+    await appendBubble({ type: 'commentary', text: 'Give me a second with the life line.', avatar: true });
+    await wait(500);
+
+    await showTyping(1400);
+    await appendBubble({ type: 'section', label: 'LIFE LINE', text: sections.LIFE, avatar: true });
+    await wait(700);
+
+    await showTyping(1200);
+    await appendBubble({ type: 'commentary', text: "And the fate line. There's something here.", avatar: true });
+    await wait(500);
+
+    await showTyping(1400);
+    await appendBubble({ type: 'section', label: 'FATE LINE', text: sections.FATE, avatar: true });
+    await wait(800);
 
     await showTyping(1800);
-    appendBubble({ type: 'section', label: 'HEART LINE', text: sections.HEART, avatar: true });
-    await wait(1600);
-
-    await showTyping(1300);
-    appendBubble({ type: 'commentary', text: 'Now the head line. This one usually tells on people.', avatar: true });
-    await wait(1100);
-
-    await showTyping(1800);
-    appendBubble({ type: 'section', label: 'HEAD LINE', text: sections.HEAD, avatar: true });
-    await wait(1600);
-
-    await showTyping(1300);
-    appendBubble({ type: 'commentary', text: 'Give me a second with the life line.', avatar: true });
-    await wait(1100);
-
-    await showTyping(1800);
-    appendBubble({ type: 'section', label: 'LIFE LINE', text: sections.LIFE, avatar: true });
-    await wait(1600);
-
-    await showTyping(1500);
-    appendBubble({ type: 'commentary', text: "And the fate line. There's something here.", avatar: true });
-    await wait(1200);
-
-    await showTyping(2000);
-    appendBubble({ type: 'section', label: 'FATE LINE', text: sections.FATE, avatar: true });
-    await wait(1800);
-
-    await showTyping(2200);
-    appendBubble({ type: 'clash', label: 'WHAT I NOTICED', text: sections.CLASH, avatar: true });
-    await wait(1000);
+    await appendBubble({ type: 'clash', label: 'WHAT I NOTICED', text: sections.CLASH, avatar: true });
+    await wait(600);
 
     headerStatus.textContent = 'Reading complete';
     headerStatus.classList.remove('live');
