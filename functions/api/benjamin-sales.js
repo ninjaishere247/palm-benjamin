@@ -108,7 +108,7 @@ async function checkRateLimit(kv, ip) {
   const key = `benjamin-sales-rl:${ip}`;
   const now = Date.now();
   const windowMs = 60 * 60 * 1000;
-  const limit = 8;
+  const limit = 30;
 
   let record;
   try {
