@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/js/session-guard.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Read your palm with Benjamin</title>
@@ -204,6 +205,30 @@
   .drop-icon{width:34px;height:34px;margin:0 auto 12px;opacity:.6;}
   .drop-title{font-size:15.5px;font-weight:500;}
   .drop-sub{font-size:13px;color:var(--muted);margin-top:5px;}
+  .preparing{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:6px 4px;
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:15px;
+    color:var(--paper-dim);
+  }
+  .prep-dot{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--lamp);
+    flex-shrink:0;
+    animation:prepPulse 1.1s ease-in-out infinite;
+  }
+  @keyframes prepPulse{
+    0%,100%{opacity:1; transform:scale(1);}
+    50%{opacity:.35; transform:scale(.72);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .prep-dot{animation:none;}
+  }
   .thumb{
     width:54px;height:54px;
     border-radius:2px;
@@ -504,7 +529,7 @@
             <div class="drop-title">Take or choose a photo of your dominant hand</div>
             <div class="drop-sub">The hand you write with, usually your right hand, or your left if you're left-handed. This is the hand palmistry reads from. Good light, palm open, fingers relaxed.</div>
           </div>
-          <input type="file" id="file" accept="image/*">
+          <input type="file" id="file" accept="image/*" capture="environment">
 
           <div class="fields" id="fields">
             <div class="field">
@@ -664,6 +689,30 @@
   var bAv=document.getElementById('benjaminAvatar');
   if(bAv){ bAv.innerHTML=BENJAMIN_SVG; bAv.style.color='var(--lamp-hi)'; }
 
+  function compressImage(dataUrl, maxDim, quality){
+    return new Promise(function(resolve){
+      var img=new Image();
+      img.onload=function(){
+        var w=img.width, h=img.height;
+        if(w>maxDim || h>maxDim){
+          if(w>h){ h=Math.round(h*maxDim/w); w=maxDim; }
+          else{ w=Math.round(w*maxDim/h); h=maxDim; }
+        }
+        var canvas=document.createElement('canvas');
+        canvas.width=w; canvas.height=h;
+        var ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        try{
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        }catch(e){
+          resolve(dataUrl);
+        }
+      };
+      img.onerror=function(){ resolve(dataUrl); };
+      img.src=dataUrl;
+    });
+  }
+
   var drop=document.getElementById('drop');
   var file=document.getElementById('file');
   var fields=document.getElementById('fields');
@@ -673,6 +722,7 @@
   var err=document.getElementById('err');
   var form=document.getElementById('form');
   var chosen=null;
+  var chosenCompressed=null;
 
   function pick(){ file.click(); }
   drop.addEventListener('click',pick);
@@ -684,14 +734,21 @@
     var f=file.files[0];
     if(!f) return;
     chosen=f;
+    chosenCompressed=null;
+
+    drop.classList.add('filled');
+    drop.removeAttribute('tabindex');
+    drop.removeAttribute('role');
+    drop.innerHTML='<div class="preparing"><i class="prep-dot"></i>Preparing your photo</div>';
+
     var r=new FileReader();
-    r.onload=function(e){
-      drop.classList.add('filled');
-      drop.removeAttribute('tabindex');
-      drop.removeAttribute('role');
+    r.onload=async function(e){
+      var compressed = await compressImage(e.target.result, 1400, 0.82);
+      chosenCompressed = compressed;
+
       drop.innerHTML='';
       var img=document.createElement('img');
-      img.className='thumb'; img.src=e.target.result; img.alt='Your palm photo';
+      img.className='thumb'; img.src=compressed; img.alt='Your palm photo';
       var meta=document.createElement('div');
       meta.className='thumb-meta';
       var nmEl=document.createElement('div');
@@ -708,7 +765,7 @@
   });
 
   function valid(){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim()); }
-  function check(){ go.disabled=!(chosen&&valid()); }
+  function check(){ go.disabled=!(chosen&&chosenCompressed&&valid()); }
   em.addEventListener('input',check);
   nm.addEventListener('input',check);
 
@@ -719,24 +776,21 @@
     err.style.display='none';
     if(!chosen){ fail('Please choose a photo of your palm first.'); return; }
     if(!valid()){ fail('Please enter a valid email address.'); return; }
+    if(!chosenCompressed){ fail('Still preparing your photo, one more second.'); return; }
     go.disabled=true; go.textContent='One moment';
-    var r=new FileReader();
-    r.onload=function(ev){
-      try{
-        sessionStorage.setItem('benjamin_photo_preview',ev.target.result);
-        sessionStorage.setItem('benjamin_name',nm.value.trim());
-        sessionStorage.setItem('benjamin_email',em.value.trim());
-        sessionStorage.removeItem('benjamin_reading');
-        sessionStorage.removeItem('benjamin_category');
-        sessionStorage.removeItem('benjamin_owned');
-        sessionStorage.removeItem('benjamin_checkins');
-        window.location.href='/reading.html';
-      }catch(x){
-        fail('Something went wrong preparing your reading. Please try again.');
-        go.disabled=false; go.textContent='Begin my reading';
-      }
-    };
-    r.readAsDataURL(chosen);
+    try{
+      sessionStorage.setItem('benjamin_photo_preview',chosenCompressed);
+      sessionStorage.setItem('benjamin_name',nm.value.trim());
+      sessionStorage.setItem('benjamin_email',em.value.trim());
+      sessionStorage.removeItem('benjamin_reading');
+      sessionStorage.removeItem('benjamin_category');
+      sessionStorage.removeItem('benjamin_owned');
+      sessionStorage.removeItem('benjamin_checkins');
+      window.location.href='/reading.html';
+    }catch(x){
+      fail('Something went wrong preparing your reading. Please try again.');
+      go.disabled=false; go.textContent='Begin my reading';
+    }
   });
 
   document.getElementById('upTop').addEventListener('click',function(e){
