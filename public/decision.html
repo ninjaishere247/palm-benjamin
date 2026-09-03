@@ -156,9 +156,25 @@
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
   }
+  #goingOver{
+    display:none;
+    position:fixed;inset:0;z-index:50;
+    background:var(--ink);
+    align-items:center;justify-content:center;
+    flex-direction:column;
+  }
+  #goingOver.on{display:flex;}
+  #goingOver .avatar{width:52px;height:52px;margin-bottom:16px;}
+  #goingOver .avatar svg{width:60%;height:60%;}
+  #goingOver p{color:var(--paper-dim);font-size:14.5px;font-family:'Fraunces',serif;font-style:italic;}
 </style>
 </head>
 <body>
+
+<div id="goingOver">
+  <div class="avatar" id="goAvatar" aria-hidden="true"></div>
+  <p>Putting this together</p>
+</div>
 
 <header>
   <div class="hbar">
@@ -196,6 +212,7 @@
 
   var log=document.getElementById('log');
   setBenjaminIcon(document.getElementById('hdrAvatar'));
+  setBenjaminIcon(document.getElementById('goAvatar'));
 
   var name=sessionStorage.getItem('benjamin_name')||'';
   var email=sessionStorage.getItem('benjamin_email')||'';
@@ -434,7 +451,9 @@
 
     await wait(500);
     say("Give me a moment. Let me put something together for you.", {aside:true});
-    await wait(1300);
+    await wait(900);
+    document.getElementById('goingOver').classList.add('on');
+    await wait(650);
     window.location.href = '/sales.html';
   })();
 })();
