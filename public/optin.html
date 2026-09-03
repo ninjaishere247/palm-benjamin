@@ -156,6 +156,7 @@
     font-size:20px;
     color:var(--lamp-hi);
   }
+  .avatar svg{width:60%;height:60%;}
   .b-name{
     font-family:'Fraunces',serif;
     font-size:17px;
@@ -484,7 +485,7 @@
       <p class="lede rise d3">Your palm is a place to start. Show me your hand and I will read the four lines with you, one at a time, and tell you what they say about how you love, how you decide, and where you are actually standing right now.</p>
 
       <div class="benjamin rise d4">
-        <div class="avatar" aria-hidden="true">B</div>
+        <div class="avatar" id="benjaminAvatar" aria-hidden="true"></div>
         <div>
           <div class="b-name">Benjamin</div>
           <div class="b-tag">Your reader. AI guided, honest about it.</div>
@@ -655,6 +656,14 @@
 
 <script>
 (function(){
+  var BENJAMIN_SVG = '<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="20" cy="15.5" r="7.2" stroke="currentColor" stroke-width="1.6"/>' +
+    '<path d="M6 34c1.4-7.4 7.2-12.5 14-12.5S38.6 26.6 40 34" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<path d="M14.5 14.5c1.6 1.4 3.6 2.1 5.5 2.1s3.9-.7 5.5-2.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".55"/>' +
+    '</svg>';
+  var bAv=document.getElementById('benjaminAvatar');
+  if(bAv){ bAv.innerHTML=BENJAMIN_SVG; bAv.style.color='var(--lamp-hi)'; }
+
   var drop=document.getElementById('drop');
   var file=document.getElementById('file');
   var fields=document.getElementById('fields');
