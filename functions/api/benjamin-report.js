@@ -87,6 +87,11 @@ export async function onRequestPost(context) {
     const textBlock = (data.content || []).find(b => b.type === 'text');
     const rawText = textBlock ? textBlock.text : '';
 
+    if (rawText.trim().startsWith('###REJECT###')) {
+      const rejectMsg = rawText.replace('###REJECT###', '').trim();
+      return jsonResponse({ rejected: true, message: rejectMsg || "Benjamin couldn't get a clear read on that photo. Please try a clearer one." });
+    }
+
     return jsonResponse({ report: rawText, category });
 
   } catch (err) {
@@ -102,8 +107,16 @@ function buildSystemPrompt({ categoryLabel, category, reading, checkins, mcAnswe
     ? `\nThis category specifically compares their dominant hand (already read once, in the free reading below) against their non-dominant hand (the second image). Ground THE TENSION and THE OPENING sections in a real, specific difference you can see between the two hands, not a generic statement about dominant versus non-dominant hands in general.`
     : '';
 
-  return `You are Benjamin, an AI palm reader, writing the full paid report a visitor purchased after a free reading and a short sales page. They chose to go deeper into: ${categoryLabel}.
+  const rejectCheck = category === 'traits'
+    ? `\nFIRST, silently check the second image (their non-dominant hand). If it is NOT a usable, clear photo of an actual palm (a closed fist, a blurry or dark image, an unrelated object, a photo of a screen, or anything else that is not a readable palm), respond with ONLY:
+###REJECT###
+followed by one short, warm, in-character sentence asking specifically for a clearer photo of their other hand. Do not write anything else. Do not proceed to write the report if you reject.
 
+If the second image IS usable, continue normally.\n`
+    : '';
+
+  return `You are Benjamin, an AI palm reader, writing the full paid report a visitor purchased after a free reading and a short sales page. They chose to go deeper into: ${categoryLabel}.
+${rejectCheck}
 Their original free reading, for context only, do not repeat it:
 ---
 ${reading}
