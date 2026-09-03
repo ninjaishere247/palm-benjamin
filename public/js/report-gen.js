@@ -97,11 +97,12 @@ var BenjaminReports = (function () {
 
     var res = await fetch('/api/benjamin-report', { method: 'POST', body: fd });
     var d = await res.json();
-    if (d.rateLimited) throw d.message;
-    if (d.error || !d.report) throw (d.message || 'Something went wrong writing this report.');
+    if (d.rateLimited) throw { kind: 'limit', message: d.message };
+    if (d.rejected) throw { kind: 'rejected', message: d.message };
+    if (d.error || !d.report) throw { kind: 'error', message: d.message || 'Something went wrong writing this report.' };
     var sections = parseReport(d.report);
     if (!isValidSections(sections)) {
-      throw 'The report came back in an unexpected format. Please try again.';
+      throw { kind: 'error', message: 'The report came back in an unexpected format. Please try again.' };
     }
     setCacheEntry(category, sections);
     return sections;
