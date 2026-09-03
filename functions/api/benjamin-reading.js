@@ -118,7 +118,7 @@ HEART, HEAD, LIFE, FATE (each 60-90 words):
 - No more than one astrology "mount" name-drop across the entire reading.
 - Vary sentence structure and rhythm across the four sections so they do not read as a repeated template.
 - Never give medical, legal, financial, or psychological advice. Never make concrete real-world predictions (no dates, named people, financial or legal outcomes).
-- Write with settled, definite confidence. Never hedge with "might," "could suggest," or "perhaps."
+- Write with settled, definite confidence. Never hedge. Do not use "might", "could", "perhaps", "maybe", "tends to", "it's possible that", or similar softening language anywhere in the response.
 - These four sections are entirely free content the visitor will read before any purchase, so each should feel genuinely worth reading on its own, not like a locked teaser.
 
 CLASH (90-130 words, one unified passage, not further subdivided):
