@@ -289,6 +289,41 @@
     padding: 6px;
   }
 
+  .choice-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 8px;
+  }
+  .choice-btn{
+    background: var(--void);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--parchment);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    min-height: 40px;
+  }
+  .choice-btn:hover:not(:disabled){
+    border-color: var(--gold);
+    background: rgba(201,162,39,0.06);
+  }
+  .choice-btn.selected{
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--void-deep);
+    font-weight: 600;
+  }
+  .choice-btn:disabled{
+    cursor: default;
+    opacity: 0.55;
+  }
+  .choice-btn.selected:disabled{
+    opacity: 1;
+  }
+
   [role="alert"]{}
 </style>
 </head>
@@ -433,6 +468,56 @@
     });
   }
 
+  function splitIntoChunks(text, sentencesPerChunk){
+    const sentences = text.match(/[^.!?]+[.!?]+(\s+|$)/g) || [text];
+    const chunks = [];
+    for (let i = 0; i < sentences.length; i += sentencesPerChunk) {
+      chunks.push(sentences.slice(i, i + sentencesPerChunk).join('').trim());
+    }
+    return chunks.length ? chunks : [text];
+  }
+
+  function waitForChoice(promptText, options){
+    return new Promise(resolve => {
+      const msg = document.createElement('div');
+      msg.className = 'msg';
+      const av = document.createElement('div');
+      av.className = 'avatar-small';
+      av.textContent = 'B';
+      msg.appendChild(av);
+      const wrap = document.createElement('div');
+      wrap.style.display = 'flex';
+      wrap.style.flexDirection = 'column';
+      wrap.style.gap = '10px';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble commentary';
+      const p = document.createElement('div');
+      bubble.appendChild(p);
+      wrap.appendChild(bubble);
+
+      const btnRow = document.createElement('div');
+      btnRow.className = 'choice-row';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'choice-btn';
+        btn.textContent = opt.label;
+        btn.addEventListener('click', function(){
+          Array.from(btnRow.children).forEach(b => b.disabled = true);
+          btn.classList.add('selected');
+          setTimeout(() => resolve(opt.value), 250);
+        });
+        btnRow.appendChild(btn);
+      });
+      wrap.appendChild(btnRow);
+      msg.appendChild(wrap);
+      chatLog.appendChild(msg);
+      msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+      typeText(p, promptText, 38);
+    });
+  }
   async function appendBubble({ type, label, text, avatar, typewriter }){
     const msg = document.createElement('div');
     msg.className = 'msg';
@@ -489,6 +574,38 @@
     msg.remove();
   }
 
+  const checkpointAnswers = {};
+
+  async function revealLine({ label, text, introLine, checkpoint }){
+    await showTyping(1000);
+    await appendBubble({ type: 'commentary', text: introLine, avatar: true });
+    await wait(400);
+
+    const chunks = splitIntoChunks(text, 2);
+    for (let i = 0; i < chunks.length; i++){
+      await showTyping(900);
+      await appendBubble({
+        type: 'section',
+        label: i === 0 ? label : null,
+        text: chunks[i],
+        avatar: true
+      });
+      await wait(400);
+    }
+
+    if (checkpoint) {
+      await wait(300);
+      const answer = await waitForChoice(checkpoint.prompt, checkpoint.options);
+      checkpointAnswers[checkpoint.key] = answer;
+      const ack = checkpoint.acknowledge[answer] || checkpoint.acknowledge.default;
+      if (ack) {
+        await showTyping(900);
+        await appendBubble({ type: 'commentary', text: ack, avatar: true });
+      }
+    }
+    await wait(500);
+  }
+
   async function runSequence(sections){
     chatLog.style.display = 'block';
     connectingScreen.style.display = 'none';
@@ -497,37 +614,89 @@
     await appendBubble({ type: 'commentary', text: 'Alright. Let me look at this properly.', avatar: true });
     await wait(500);
 
+    await revealLine({
+      label: 'HEART LINE',
+      text: sections.HEART,
+      introLine: 'Starting with the heart line.',
+      checkpoint: {
+        key: 'heart',
+        prompt: 'Does that sound closer to how you actually love, or how people assume you love?',
+        options: [
+          { label: "That's exactly it", value: 'accurate' },
+          { label: "It's more complicated than that", value: 'complicated' }
+        ],
+        acknowledge: {
+          accurate: "Good. That matters for what comes next.",
+          complicated: "Fair. Most true things are.",
+          default: "Noted."
+        }
+      }
+    });
+
+    await revealLine({
+      label: 'HEAD LINE',
+      text: sections.HEAD,
+      introLine: 'Now the head line. This one usually tells on people.',
+      checkpoint: {
+        key: 'head',
+        prompt: 'Do you make decisions this way on purpose, or does it just happen?',
+        options: [
+          { label: 'On purpose', value: 'deliberate' },
+          { label: 'It just happens', value: 'automatic' }
+        ],
+        acknowledge: {
+          deliberate: "That's rarer than you'd think.",
+          automatic: "Then you're probably underselling how sharp it actually is.",
+          default: "Noted."
+        }
+      }
+    });
+
+    await revealLine({
+      label: 'LIFE LINE',
+      text: sections.LIFE,
+      introLine: 'Give me a second with the life line.',
+      checkpoint: {
+        key: 'life',
+        prompt: 'Has this felt true for a while, or has something shifted recently?',
+        options: [
+          { label: "It's been true for a while", value: 'steady' },
+          { label: "Something's shifted recently", value: 'shifted' }
+        ],
+        acknowledge: {
+          steady: "That kind of consistency shows.",
+          shifted: "That explains something about the next part.",
+          default: "Noted."
+        }
+      }
+    });
+
+    await revealLine({
+      label: 'FATE LINE',
+      text: sections.FATE,
+      introLine: "And the fate line. There's something here.",
+      checkpoint: {
+        key: 'fate',
+        prompt: 'Does that internal compass feel steady right now, or a little shaky?',
+        options: [
+          { label: 'Steady', value: 'steady' },
+          { label: 'A little shaky lately', value: 'shaky' }
+        ],
+        acknowledge: {
+          steady: "Good to know. Hold onto that.",
+          shaky: "That's worth sitting with, not fixing.",
+          default: "Noted."
+        }
+      }
+    });
+
     await showTyping(1400);
-    await appendBubble({ type: 'section', label: 'HEART LINE', text: sections.HEART, avatar: true });
-    await wait(700);
-
-    await showTyping(1000);
-    await appendBubble({ type: 'commentary', text: 'Now the head line. This one usually tells on people.', avatar: true });
-    await wait(500);
-
-    await showTyping(1400);
-    await appendBubble({ type: 'section', label: 'HEAD LINE', text: sections.HEAD, avatar: true });
-    await wait(700);
-
-    await showTyping(1000);
-    await appendBubble({ type: 'commentary', text: 'Give me a second with the life line.', avatar: true });
-    await wait(500);
-
-    await showTyping(1400);
-    await appendBubble({ type: 'section', label: 'LIFE LINE', text: sections.LIFE, avatar: true });
-    await wait(700);
-
-    await showTyping(1200);
-    await appendBubble({ type: 'commentary', text: "And the fate line. There's something here.", avatar: true });
-    await wait(500);
-
-    await showTyping(1400);
-    await appendBubble({ type: 'section', label: 'FATE LINE', text: sections.FATE, avatar: true });
-    await wait(800);
-
-    await showTyping(1800);
     await appendBubble({ type: 'clash', label: 'WHAT I NOTICED', text: sections.CLASH, avatar: true });
     await wait(600);
+
+    try {
+      sessionStorage.setItem('benjamin_checkins', JSON.stringify(checkpointAnswers));
+    } catch(e){}
 
     headerStatus.textContent = 'Reading complete';
     headerStatus.classList.remove('live');
