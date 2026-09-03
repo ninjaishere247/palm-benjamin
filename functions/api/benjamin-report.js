@@ -36,12 +36,13 @@ export async function onRequestPost(context) {
       }
     }
 
+    // Only the second (non-dominant) hand photo is genuinely new information.
+    // The primary hand's physical details are already established in the free
+    // reading and are locked into the prompt as fact below, so we deliberately
+    // do NOT resend or re-examine the primary photo here. Sending it again and
+    // asking the model to "look closer" is what previously caused different
+    // reports to describe the same line differently.
     const imageBlocks = [];
-    const buf1 = await photo.arrayBuffer();
-    imageBlocks.push({
-      type: 'image',
-      source: { type: 'base64', media_type: photo.type || 'image/jpeg', data: arrayBufferToBase64(buf1) }
-    });
     if (category === 'traits') {
       const buf2 = await photo2.arrayBuffer();
       imageBlocks.push({
@@ -50,7 +51,12 @@ export async function onRequestPost(context) {
       });
     }
 
-    const systemPrompt = buildSystemPrompt({ categoryLabel, category, reading, checkins, mcAnswer, name });
+    const establishedFacts = extractEstablishedFacts(reading);
+    const systemPrompt = buildSystemPrompt({ categoryLabel, category, establishedFacts, checkins, mcAnswer, name });
+
+    const userText = category === 'traits'
+      ? 'The image is their non-dominant hand. Write the full report exactly as instructed, comparing it against the already-established facts about their dominant hand given to you above.'
+      : 'Write the full report exactly as instructed, building on the already-established facts given to you above. Do not invent new physical details about their hand.';
 
     const apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -67,12 +73,9 @@ export async function onRequestPost(context) {
         messages: [
           {
             role: 'user',
-            content: [
-              ...imageBlocks,
-              { type: 'text', text: category === 'traits'
-                ? 'The first image is their dominant hand, already read once. The second image is their non-dominant hand. Write the full report exactly as instructed.'
-                : 'Write the full report exactly as instructed, looking closely at the photo again for detail beyond the free reading.' }
-            ]
+            content: imageBlocks.length
+              ? [...imageBlocks, { type: 'text', text: userText }]
+              : userText
           }
         ]
       })
@@ -99,28 +102,68 @@ export async function onRequestPost(context) {
   }
 }
 
-function buildSystemPrompt({ categoryLabel, category, reading, checkins, mcAnswer, name }) {
+function extractEstablishedFacts(reading) {
+  const keys = ['HEART', 'HEAD', 'LIFE', 'FATE'];
+  const labels = { HEART: 'Heart line', HEAD: 'Head line', LIFE: 'Life line', FATE: 'Fate line' };
+  const found = {};
+
+  for (let i = 0; i < keys.length; i++) {
+    const tag = `###${keys[i]}###`;
+    const start = reading.indexOf(tag);
+    if (start === -1) continue;
+    const from = start + tag.length;
+    let to = reading.length;
+    for (let j = i + 1; j < keys.length; j++) {
+      const nextIdx = reading.indexOf(`###${keys[j]}###`, from);
+      if (nextIdx !== -1) { to = nextIdx; break; }
+    }
+    // CLASH marker may also follow FATE; stop there too if present.
+    const clashIdx = reading.indexOf('###CLASH###', from);
+    const cutoff = clashIdx !== -1 && clashIdx < to ? clashIdx : to;
+    found[keys[i]] = reading.slice(from, cutoff).trim();
+  }
+
+  const lines = keys.filter(k => found[k]).map(k => `${labels[k]}: ${found[k]}`);
+
+  if (!lines.length) {
+    // Defensive fallback: markers weren't found for some reason. Fall back to
+    // handing over the raw reading text so the report can still be written,
+    // just without the same strict per-line locking.
+    return null;
+  }
+
+  return lines.join('\n\n');
+}
+
+function buildSystemPrompt({ categoryLabel, category, establishedFacts, checkins, mcAnswer, name }) {
   const nameLine = name ? `Address them by name at most once, naturally.` : `No name was given, do not invent one.`;
   const checkinsSummary = JSON.stringify(checkins || {});
 
   const traitsNote = category === 'traits'
-    ? `\nThis category specifically compares their dominant hand (already read once, in the free reading below) against their non-dominant hand (the second image). Ground THE TENSION and THE OPENING sections in a real, specific difference you can see between the two hands, not a generic statement about dominant versus non-dominant hands in general.`
+    ? `\nThis category specifically compares their dominant hand (already established below) against their non-dominant hand (the image you were given). Ground THE TENSION and THE OPENING sections in a real, specific difference between the two hands, not a generic statement about dominant versus non-dominant hands in general. Only describe the non-dominant hand from the image. Never contradict the established dominant-hand facts below.`
     : '';
 
   const rejectCheck = category === 'traits'
-    ? `\nFIRST, silently check the second image (their non-dominant hand). If it is NOT a usable, clear photo of an actual palm (a closed fist, a blurry or dark image, an unrelated object, a photo of a screen, or anything else that is not a readable palm), respond with ONLY:
+    ? `\nFIRST, silently check the image (their non-dominant hand). If it is NOT a usable, clear photo of an actual palm (a closed fist, a blurry or dark image, an unrelated object, a photo of a screen, or anything else that is not a readable palm), respond with ONLY:
 ###REJECT###
 followed by one short, warm, in-character sentence asking specifically for a clearer photo of their other hand. Do not write anything else. Do not proceed to write the report if you reject.
 
-If the second image IS usable, continue normally.\n`
+If the image IS usable, continue normally.\n`
     : '';
+
+  const factsBlock = establishedFacts
+    ? `These physical observations about their dominant hand were already established in their free reading. Treat them as settled fact. Do not contradict them, do not re-describe the lines differently, and do not invent new physical details about the dominant hand that weren't already noted here:
+---
+${establishedFacts}
+---`
+    : `Their free reading, for context. Stay consistent with what it already says about their hand, do not contradict it:
+---
+(reading text unavailable in expected format, proceed carefully)
+---`;
 
   return `You are Benjamin, an AI palm reader, writing the full paid report a visitor purchased after a free reading and a short sales page. They chose to go deeper into: ${categoryLabel}.
 ${rejectCheck}
-Their original free reading, for context only, do not repeat it:
----
-${reading}
----
+${factsBlock}
 
 Their check-in answers during the free reading: ${checkinsSummary}
 Their answer about ${categoryLabel} specifically: "${mcAnswer}"
@@ -135,9 +178,9 @@ Write the report with exactly these seven markers, each on its own line, in this
 ###PHASE###
 ###WATCH###
 
-THE PATTERN: One concrete, specific observation from their hand relevant to ${categoryLabel}. Open with a visual detail, not a label.
-THE ORIGIN: The mechanism behind that pattern. Why it shows up this way for them specifically, grounded in the hand, not generic psychology.
-THE TENSION: A genuine trade-off or contradiction in their hand relevant to this area. Something that has both served and cost them.
+THE PATTERN: Ground this in one of the already-established physical observations above, relevant to ${categoryLabel}. Reference it, do not re-describe it differently.
+THE ORIGIN: The mechanism behind that pattern. Why it shows up this way for them specifically, grounded in the established facts, not generic psychology.
+THE TENSION: A genuine trade-off or contradiction between two of the established observations, relevant to this area. Something that has both served and cost them.
 THE COST: What staying exactly as they are is quietly costing them right now, specifically in ${categoryLabel}, not in general.
 THE OPENING: Reframe a perceived weakness as a misapplied strength, or the reverse, and what becomes possible if they see it differently.
 THE PHASE: What stage or chapter they appear to be in right now, without naming dates or predicting outcomes.
@@ -149,7 +192,8 @@ Hard rules for the entire response:
 - Never use vague, Barnum-style language that could apply to anyone. Every claim should be specific enough that it could be wrong for someone else.
 - Never give medical, legal, financial, or psychological advice, and never make concrete real-world predictions (no dates, named people, financial or legal outcomes).
 - Palmistry has no real predictive power. Never imply otherwise.
-- Write with settled, definite confidence. Never hedge.`;
+- Write with settled, definite confidence. Never hedge.
+- Never introduce a new physical description of the dominant hand that isn't already in the established facts above.`;
 }
 
 async function checkRateLimit(kv, ip) {
