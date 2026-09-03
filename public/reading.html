@@ -434,6 +434,7 @@
   var email=sessionStorage.getItem('benjamin_email')||'';
 
   if(!photo||!email){ window.location.href='/optin.html'; return; }
+  if(sessionStorage.getItem('benjamin_reading')){ window.location.href='/decision.html'; return; }
   scanPhoto.src = photo;
 
   var scanMessages = [
@@ -737,8 +738,18 @@
 
   (async function(){
     try{
-      var raw=await getReading();
-      sessionStorage.setItem('benjamin_reading',raw);
+      var existing = sessionStorage.getItem('benjamin_reading');
+      var raw;
+      if(existing){
+        var existingParsed = parse(existing);
+        if(existingParsed.HEART && existingParsed.CLASH){
+          raw = existing;
+        }
+      }
+      if(!raw){
+        raw = await getReading();
+        sessionStorage.setItem('benjamin_reading',raw);
+      }
       var s=parse(raw);
       if(!s.HEART||!s.CLASH) throw {kind:'err',msg:'The reading came back incomplete. Please try again.'};
       await run(s);
