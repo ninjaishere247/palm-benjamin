@@ -45,13 +45,57 @@
   .bname{font-family:'Fraunces',serif;font-size:15px;}
   .btag{font-size:11.5px;color:var(--muted);}
 
-  #load{
-    text-align:center;padding:100px 10px;
-  }
-  #load h2{
-    font-family:'Fraunces',serif;font-weight:300;font-size:19px;margin-bottom:8px;
-  }
+  #load{text-align:center;padding:90px 10px;}
+  #load h2{font-family:'Fraunces',serif;font-weight:300;font-size:19px;margin-bottom:8px;min-height:26px;}
   #load p{color:var(--muted);font-size:13.5px;}
+  .writing{
+    width:64px;height:64px;margin:0 auto 24px;
+    position:relative;
+  }
+  .writing .avatar{
+    width:100%;height:100%;
+  }
+  .writing .avatar svg{width:60%;height:60%;}
+  .writing .ring{
+    position:absolute;inset:-6px;
+    border-radius:50%;
+    border:1.5px solid transparent;
+    border-top-color:var(--lamp);
+    border-right-color:var(--lamp);
+    animation:orbit 1.4s linear infinite;
+  }
+  @keyframes orbit{ to{ transform:rotate(360deg); } }
+  .ink-line{
+    width:120px;height:2px;
+    background:var(--edge);
+    margin:0 auto 22px;
+    position:relative;
+    overflow:hidden;
+    border-radius:2px;
+  }
+  .ink-line::after{
+    content:'';
+    position:absolute;top:0;left:-40%;
+    width:40%;height:100%;
+    background:linear-gradient(90deg, transparent, var(--lamp-hi), transparent);
+    animation:ink 1.6s ease-in-out infinite;
+  }
+  @keyframes ink{
+    0%{ left:-40%; }
+    100%{ left:100%; }
+  }
+
+  #goingOver{
+    display:none;
+    position:fixed;inset:0;z-index:50;
+    background:var(--ink);
+    align-items:center;justify-content:center;
+    flex-direction:column;
+  }
+  #goingOver.on{display:flex;}
+  #goingOver .avatar{width:52px;height:52px;margin-bottom:16px;}
+  #goingOver .avatar svg{width:60%;height:60%;}
+  #goingOver p{color:var(--paper-dim);font-size:14.5px;font-family:'Fraunces',serif;font-style:italic;}
 
   #content{display:none;}
 
@@ -142,7 +186,12 @@
   </header>
 
   <div id="load">
-    <h2>Putting this together</h2>
+    <div class="writing">
+      <div class="ring"></div>
+      <div class="avatar" id="loadAvatar"></div>
+    </div>
+    <div class="ink-line"></div>
+    <h2 id="loadStatus">Weighing what matters here</h2>
     <p>Benjamin is writing this specifically for what you told him.</p>
   </div>
 
@@ -166,8 +215,8 @@
     <div class="offer">
       <div class="offer-cat" id="offerCat">Career and Finances</div>
       <div class="offer-price">$9 <span>one time, no subscription</span></div>
-      <a class="cta" id="ctaBtn" href="/checkout.html">Get my full reading</a>
-      <div class="bundle">Want all four areas? <a href="/checkout.html?bundle=1" id="bundleLink">Get everything for $24</a></div>
+      <button type="button" class="cta" id="ctaBtn">Get my full reading</button>
+      <div class="bundle">Want all four areas? <a href="#" id="bundleLink">Get everything for $24</a></div>
     </div>
 
     <div class="guarantee">
@@ -179,6 +228,11 @@
   <div id="err" role="alert"></div>
 </div>
 
+<div id="goingOver">
+  <div class="avatar" id="goAvatar"></div>
+  <p id="goText">Taking you to checkout</p>
+</div>
+
 <script>
 (function(){
   var BENJAMIN_SVG = '<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -188,6 +242,18 @@
     '</svg>';
   var av=document.getElementById('hdrAvatar');
   av.innerHTML=BENJAMIN_SVG; av.style.color='var(--lamp-hi)';
+  var loadAv=document.getElementById('loadAvatar');
+  loadAv.innerHTML=BENJAMIN_SVG; loadAv.style.color='var(--lamp-hi)';
+  var goAv=document.getElementById('goAvatar');
+  goAv.innerHTML=BENJAMIN_SVG; goAv.style.color='var(--lamp-hi)';
+
+  var loadMessages=['Weighing what matters here','Choosing the right words','Following that thread','Almost there'];
+  var loadIdx=0;
+  var loadStatus=document.getElementById('loadStatus');
+  var loadTimer=setInterval(function(){
+    loadIdx=(loadIdx+1)%loadMessages.length;
+    loadStatus.textContent=loadMessages[loadIdx];
+  },1700);
 
   var load=document.getElementById('load');
   var content=document.getElementById('content');
@@ -198,6 +264,8 @@
   var offerCat=document.getElementById('offerCat');
   var ctaBtn=document.getElementById('ctaBtn');
   var bundleLink=document.getElementById('bundleLink');
+  var goingOver=document.getElementById('goingOver');
+  var goText=document.getElementById('goText');
 
   var reading=sessionStorage.getItem('benjamin_reading')||'';
   var category=sessionStorage.getItem('benjamin_category')||'';
@@ -214,8 +282,19 @@
 
   catLabel.textContent=label;
   offerCat.textContent=label;
-  ctaBtn.href='/checkout.html?category='+encodeURIComponent(category);
-  bundleLink.href='/checkout.html?bundle=1';
+
+  function goToCheckout(url, text){
+    goText.textContent=text;
+    goingOver.classList.add('on');
+    setTimeout(function(){ window.location.href=url; }, 550);
+  }
+  ctaBtn.addEventListener('click',function(){
+    goToCheckout('/checkout.html?category='+encodeURIComponent(category), 'Taking you to checkout for '+label);
+  });
+  bundleLink.addEventListener('click',function(e){
+    e.preventDefault();
+    goToCheckout('/checkout.html?bundle=1', 'Taking you to checkout for all four areas');
+  });
 
   function parseSales(text){
     var keys=['HOOK','BODY','CLOSE'], r={};
@@ -265,9 +344,11 @@
         bodyText.appendChild(closeP);
       }
 
+      clearInterval(loadTimer);
       load.style.display='none';
       content.style.display='block';
     }catch(e){
+      clearInterval(loadTimer);
       load.style.display='none';
       err.style.display='block';
       err.innerHTML='';
