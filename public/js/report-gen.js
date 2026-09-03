@@ -6,7 +6,7 @@
 
 var BenjaminReports = (function () {
   var SECTION_NAMES = ['PATTERN', 'ORIGIN', 'TENSION', 'COST', 'OPENING', 'PHASE', 'WATCH'];
-  var CACHE_KEY = 'benjamin_report_cache';
+  var CACHE_KEY = 'benjamin_report_cache_v2';
 
   function toBlob(dataUrl) {
     var p = dataUrl.split(','), mime = p[0].match(/:(.*?);/)[1];
@@ -53,7 +53,10 @@ var BenjaminReports = (function () {
 
   function isValidSections(sections) {
     if (!sections) return false;
-    var foundKeys = Object.keys(sections).filter(function (k) { return sections[k]; });
+    if (typeof sections !== 'object' || Array.isArray(sections)) return false;
+    var foundKeys = Object.keys(sections).filter(function (k) {
+      return SECTION_NAMES.indexOf(k) !== -1 && sections[k];
+    });
     return foundKeys.length >= 3;
   }
 
