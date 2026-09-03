@@ -97,7 +97,6 @@ If the photo IS usable, write a full reading with these exact markers, each on i
 ###LIFE###
 ###FATE###
 ###CLASH###
-###COORDS###
 
 WHO IS READING THIS, AND WHY IT MATTERS
 People do not come to a palm reading because they believe a hand predicts the future. They come when something in their life is unsettled: a decision with no clear right answer, a relationship they cannot read, a stretch of time where they cannot tell if they are moving or stuck. They are not looking for more information. They are looking to feel that what they are carrying makes sense and has a shape.
@@ -128,17 +127,11 @@ CLASH (90-130 words, one unified passage, not further subdivided):
 - Do not resolve the tension. Do not say what it means yet. The point is to make the visitor feel truly seen and mildly unsettled in a way that makes them want to understand it further, not to explain it fully here.
 - End this section with a short, direct question or statement that gestures toward the idea that this tension shows up differently depending on where it is actually costing them right now, in their career, their relationships, their sense of direction, or their sense of their own potential, without naming all four of those explicitly. Keep this closing line under 25 words, and do not use ellipses.
 
-COORDS (one line of raw JSON, nothing else, no markdown fences):
-Give a rough path for each line you can actually see clearly in the photo, as a small number of points (4 to 7) tracing that line's general course from one end to the other. Each point is [x, y] as a percentage of the image width and height (0 to 100, one decimal place is enough). Format:
-{"HEART":[[x,y],[x,y],...],"HEAD":[[x,y],...],"LIFE":[[x,y],...],"FATE":[[x,y],...]}
-If you are not reasonably confident about where a specific line actually runs in this photo, omit that key entirely rather than guessing. It is far better to leave a line out than to place it somewhere wrong. These points only need to be a general, honest trace, not pixel-perfect.
-
 Hard rules for the entire response:
 - No em dashes anywhere, under any circumstance.
 - No exclamation points.
 - No astrology jargon beyond the single permitted mount name-drop.
-- Palmistry has no real predictive power. Never imply otherwise. Do not claim certainty about the future, only about what the lines show and how that tends to shape a person's patterns.
-- The COORDS line must be valid JSON and nothing else on that line.`;
+- Palmistry has no real predictive power. Never imply otherwise. Do not claim certainty about the future, only about what the lines show and how that tends to shape a person's patterns.`;
 }
 
 async function checkRateLimit(kv, ip) {
