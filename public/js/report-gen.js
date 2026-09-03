@@ -16,6 +16,10 @@ var BenjaminReports = (function () {
   }
 
   function parseReport(text) {
+    text = (text || '').trim();
+    if (text.indexOf('```') === 0) {
+      text = text.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '');
+    }
     var r = {};
     for (var i = 0; i < SECTION_NAMES.length; i++) {
       var key = SECTION_NAMES[i];
@@ -89,6 +93,10 @@ var BenjaminReports = (function () {
     if (d.rateLimited) throw d.message;
     if (d.error || !d.report) throw (d.message || 'Something went wrong writing this report.');
     var sections = parseReport(d.report);
+    var foundKeys = Object.keys(sections).filter(function (k) { return sections[k]; });
+    if (foundKeys.length < 3) {
+      throw 'The report came back in an unexpected format. Please try again.';
+    }
     setCacheEntry(category, sections);
     return sections;
   }
