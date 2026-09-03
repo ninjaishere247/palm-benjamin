@@ -153,9 +153,9 @@
 
   <div id="photoAsk">
     <h2>One more photo</h2>
-    <p>Your Inherent Traits reading needs your other hand, the one you do not lead with.</p>
+    <p>Inherent Traits and Potential compares both hands: your dominant hand shows what you've built, your non-dominant hand shows what you started with. That gap is the actual reading.</p>
     <div class="drop" id="drop2">
-      <div>Add a photo of your other palm</div>
+      <div>Add a photo of your non-dominant hand. If your first photo was your right hand, show your left this time, or the reverse if it was your left.</div>
     </div>
     <input type="file" id="file2" accept="image/*">
     <button type="button" class="go2" id="go2Btn">Continue</button>
@@ -525,31 +525,27 @@
     });
   }
 
+  function errorText(e){
+    if (typeof e === 'string') return e;
+    if (e && e.message) return e.message;
+    return 'Something went wrong preparing your reading.';
+  }
+
   (async function(){
     try{
       await ensureTraitsPhoto();
 
-      var cacheRaw = sessionStorage.getItem('benjamin_report_cache');
-      var cache = {};
-      try{ cache = cacheRaw ? JSON.parse(cacheRaw) : {}; }catch(e){}
-
       for(var i=0;i<owned.categories.length;i++){
         setProg(i,'now');
         var cat=owned.categories[i];
-        var sections;
-        if(cache[cat]){
-          sections = parseReport(cache[cat]);
-        } else {
-          loadSub.textContent = owned.categories.length>1
-            ? ('Writing '+LABELS[cat]+' ('+(i+1)+' of '+owned.categories.length+')')
-            : 'This can take a little while, Benjamin is writing this specifically for you.';
-          sections = await fetchReport(cat, i);
-        }
+        loadSub.textContent = owned.categories.length>1
+          ? ('Writing '+LABELS[cat]+' ('+(i+1)+' of '+owned.categories.length+')')
+          : 'This can take a little while, Benjamin is writing this specifically for you.';
+        var sections = await fetchReport(cat, i);
         reportData[cat]=sections;
         renderReport(cat, sections);
         setProg(i,'done');
       }
-      try{ sessionStorage.removeItem('benjamin_report_cache'); }catch(e){}
 
       buildTabs(owned.categories);
       showTab(owned.categories[0]);
@@ -567,7 +563,7 @@
       photoAsk.style.display='none';
       err.style.display='block';
       err.innerHTML='';
-      err.appendChild(document.createTextNode(typeof e==='string'?e:'Something went wrong preparing your reading.'));
+      err.appendChild(document.createTextNode(errorText(e)));
       err.appendChild(document.createElement('br'));
       err.appendChild(document.createElement('br'));
       var a=document.createElement('a'); a.href='/decision.html'; a.textContent='Go back';
