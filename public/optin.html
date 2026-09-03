@@ -3,447 +3,748 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sage of Signs — Read Your Palm With Benjamin</title>
-<meta name="description" content="Upload a photo of your palm. Benjamin will read your four lines with you, live.">
+<title>Read your palm with Benjamin</title>
+<meta name="description" content="A free palm reading, read with you line by line. No card needed.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --void: #12142B;
-    --void-deep: #0E1024;
-    --plum: #241832;
-    --parchment: #F0E8D8;
-    --gold: #C9A227;
-    --gold-lit: #E0BC4A;
-    --copper: #C06B33;
-    --lavender: #9C96B8;
-    --line: rgba(240,232,216,0.14);
+    --ink:#14110F;
+    --ink-2:#1C1815;
+    --edge:rgba(237,230,218,0.10);
+    --edge-lit:rgba(224,162,74,0.45);
+    --paper:#EDE6DA;
+    --paper-dim:rgba(237,230,218,0.62);
+    --lamp:#E0A24A;
+    --lamp-hi:#F0BC6C;
+    --clay:#B5695A;
+    --muted:#9A8F82;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  html{scroll-behavior:smooth;}
+  html{-webkit-text-size-adjust:100%;}
   body{
-    background: var(--void-deep);
-    color: var(--parchment);
-    font-family: 'Inter', sans-serif;
-    line-height: 1.6;
-    min-height: 100vh;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.65;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
   }
-  .wrap{
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 0 24px;
+  body::before{
+    content:'';
+    position:fixed;
+    top:-30vh; left:-20vw;
+    width:90vw; height:90vh;
+    max-width:1100px; max-height:1100px;
+    background:radial-gradient(circle at 50% 50%, rgba(224,162,74,0.16), rgba(224,162,74,0.05) 42%, transparent 68%);
+    pointer-events:none;
+    z-index:0;
+    animation:breathe 11s ease-in-out infinite;
   }
-  header.top{
-    padding: 28px 0 0;
+  @keyframes breathe{
+    0%,100%{opacity:.85; transform:scale(1);}
+    50%{opacity:1; transform:scale(1.05);}
   }
-  .brand{
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    color: var(--lavender);
+
+  .shell{
+    position:relative;
+    z-index:1;
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 24px;
   }
-  main{
-    padding: 56px 0 40px;
+
+  .masthead{
+    padding:26px 0 0;
+    font-family:'Fraunces',serif;
+    font-size:15px;
+    letter-spacing:.02em;
+    color:var(--paper-dim);
   }
-  .intro-photo{
-    display:flex;
+
+  .hero{
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    gap:56px;
     align-items:center;
-    gap:14px;
-    margin-bottom: 28px;
+    padding:64px 0 72px;
   }
-  .benjamin-avatar{
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, #3a2f52, var(--plum) 70%);
-    border: 1px solid var(--line);
-    flex-shrink:0;
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:300;
+    font-size:clamp(34px,5.2vw,60px);
+    line-height:1.08;
+    letter-spacing:-0.015em;
+    margin-bottom:22px;
+  }
+  h1 .turn{
+    display:block;
+    font-style:italic;
+    color:var(--lamp);
+  }
+  .lede{
+    font-size:clamp(16px,2.1vw,18.5px);
+    color:var(--paper-dim);
+    max-width:44ch;
+    margin-bottom:34px;
+  }
+
+  .palm-wrap{
+    position:relative;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-family:'Fraunces', serif;
-    font-size: 20px;
-    color: var(--gold-lit);
   }
-  .intro-name{
-    font-family:'Space Mono', monospace;
-    font-size: 13px;
-    color: var(--gold);
+  .palm{
+    width:100%;
+    max-width:340px;
+    height:auto;
+    overflow:visible;
   }
-  .intro-tag{
-    font-size: 12px;
-    color: var(--lavender);
-    margin-top: 2px;
+  .palm .outline{
+    fill:rgba(237,230,218,0.025);
+    stroke:rgba(237,230,218,0.20);
+    stroke-width:1.4;
   }
-  h1{
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: clamp(30px, 6vw, 42px);
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    margin-bottom: 18px;
+  .palm .pline{
+    fill:none;
+    stroke-width:2.6;
+    stroke-linecap:round;
+    stroke-dasharray:var(--len);
+    stroke-dashoffset:var(--len);
+    animation:draw 1.9s cubic-bezier(.4,0,.2,1) forwards;
   }
-  h1 em{
-    font-style: italic;
-    color: var(--gold-lit);
-  }
-  p.lede{
-    font-size: 17px;
-    color: var(--parchment);
-    opacity: 0.82;
-    max-width: 46ch;
-    margin-bottom: 40px;
-  }
-  .card{
-    background: var(--plum);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 32px 28px;
-  }
-  .upload-zone{
-    border: 1px dashed var(--line);
-    border-radius: 3px;
-    padding: 36px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-  .upload-zone:hover, .upload-zone.dragging{
-    border-color: var(--gold);
-    background: rgba(201,162,39,0.05);
-  }
-  .upload-zone.has-photo{
-    padding: 16px;
-    text-align: left;
-    display:flex;
-    align-items:center;
-    gap: 16px;
-    cursor:default;
-    border-style: solid;
-    border-color: var(--gold);
-  }
-  .upload-icon{
-    width: 40px;
-    height: 40px;
-    margin: 0 auto 14px;
-    opacity: 0.75;
-  }
-  .upload-zone.has-photo .upload-icon{margin:0;}
-  .upload-label{
-    font-size: 15px;
-    font-weight: 500;
-  }
-  .upload-sub{
-    font-size: 13px;
-    color: var(--lavender);
-    margin-top: 6px;
-  }
-  .photo-preview{
-    width: 56px;
-    height: 56px;
-    border-radius: 3px;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 1px solid var(--line);
-  }
-  .photo-meta{flex:1;min-width:0;}
-  .photo-name{
-    font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .photo-change{
-    font-size: 13px;
-    color: var(--gold-lit);
-    background:none;
-    border:none;
-    font-family: inherit;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  input[type="file"]{ display:none; }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  .palm .l-heart{ stroke:var(--lamp);    --len:230; animation-delay:.5s; }
+  .palm .l-head{  stroke:var(--lamp-hi); --len:215; animation-delay:.85s; }
+  .palm .l-life{  stroke:var(--clay);    --len:250; animation-delay:1.2s; }
+  .palm .l-fate{  stroke:#9C8FA8;        --len:170; animation-delay:1.55s; }
 
-  .fields{
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: max-height 0.4s ease, opacity 0.35s ease, margin-top 0.4s ease;
-  }
-  .fields.open{
-    max-height: 420px;
-    opacity: 1;
-    margin-top: 24px;
-  }
-  .field{
-    margin-bottom: 16px;
-  }
-  label{
-    display:block;
-    font-size: 13px;
-    color: var(--lavender);
-    margin-bottom: 7px;
-  }
-  input[type="text"], input[type="email"]{
-    width: 100%;
-    background: var(--void);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 13px 14px;
-    font-size: 16px;
-    font-family: 'Inter', sans-serif;
-    color: var(--parchment);
-  }
-  input[type="text"]:focus, input[type="email"]:focus{
-    outline: none;
-    border-color: var(--gold);
-  }
-  .privacy-note{
-    font-size: 12.5px;
-    color: var(--lavender);
-    margin: 14px 0 22px;
-    line-height: 1.55;
-  }
-  button.submit{
-    width: 100%;
-    background: var(--gold);
-    color: var(--void-deep);
-    border: none;
-    border-radius: 3px;
-    padding: 16px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    min-height: 44px;
-  }
-  button.submit:hover{ background: var(--gold-lit); }
-  button.submit:disabled{
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .trust-row{
+  .key{
     display:flex;
     flex-wrap:wrap;
-    gap: 18px;
-    margin-top: 22px;
-    font-size: 12.5px;
-    color: var(--lavender);
+    gap:8px 18px;
+    margin-top:22px;
+    justify-content:center;
+    font-size:12.5px;
+    color:var(--muted);
   }
-  .trust-row span{
+  .key span{display:flex;align-items:center;gap:7px;}
+  .key i{width:16px;height:2px;border-radius:2px;display:block;}
+
+  .benjamin{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:18px 20px;
+    border:1px solid var(--edge);
+    border-radius:2px;
+    background:linear-gradient(180deg, rgba(224,162,74,0.05), transparent);
+    margin-bottom:34px;
+    max-width:520px;
+  }
+  .avatar{
+    width:46px;height:46px;
+    border-radius:50%;
+    flex-shrink:0;
+    background:radial-gradient(circle at 34% 30%, #4A3B2C, #2A231D 72%);
+    border:1px solid var(--edge-lit);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    font-size:20px;
+    color:var(--lamp-hi);
+  }
+  .b-name{
+    font-family:'Fraunces',serif;
+    font-size:17px;
+    line-height:1.3;
+  }
+  .b-tag{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:1px;
+  }
+  .b-word{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:15.5px;
+    color:var(--paper-dim);
+    margin-top:9px;
+    line-height:1.5;
+  }
+
+  .start{max-width:520px;}
+  .drop{
+    border:1px dashed var(--edge);
+    border-radius:2px;
+    padding:30px 22px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .25s, background .25s;
+    background:rgba(237,230,218,0.015);
+  }
+  .drop:hover,.drop:focus-visible{
+    border-color:var(--edge-lit);
+    background:rgba(224,162,74,0.05);
+    outline:none;
+  }
+  .drop.filled{
+    border-style:solid;
+    border-color:var(--edge-lit);
+    padding:14px;
     display:flex;
     align-items:center;
-    gap: 6px;
+    gap:14px;
+    text-align:left;
+    cursor:default;
   }
-  .trust-row svg{ width: 13px; height: 13px; flex-shrink:0; }
+  .drop-icon{width:34px;height:34px;margin:0 auto 12px;opacity:.6;}
+  .drop-title{font-size:15.5px;font-weight:500;}
+  .drop-sub{font-size:13px;color:var(--muted);margin-top:5px;}
+  .thumb{
+    width:54px;height:54px;
+    border-radius:2px;
+    object-fit:cover;
+    flex-shrink:0;
+    border:1px solid var(--edge);
+  }
+  .thumb-meta{flex:1;min-width:0;}
+  .thumb-name{
+    font-size:14px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .swap{
+    background:none;border:none;padding:0;
+    color:var(--lamp);
+    font:inherit;font-size:13px;
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    margin-top:3px;
+  }
+  input[type=file]{display:none;}
 
-  #error-region{
-    display:none;
-    background: rgba(192,107,51,0.12);
-    border: 1px solid rgba(192,107,51,0.4);
-    border-radius: 3px;
-    padding: 14px 16px;
-    font-size: 13.5px;
-    margin-top: 18px;
-    color: var(--parchment);
+  .fields{
+    max-height:0;overflow:hidden;opacity:0;
+    transition:max-height .45s ease, opacity .4s ease, margin-top .45s ease;
   }
+  .fields.open{max-height:520px;opacity:1;margin-top:22px;}
+  .field{margin-bottom:15px;}
+  label{
+    display:block;
+    font-size:12.5px;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  input[type=text],input[type=email]{
+    width:100%;
+    background:var(--ink-2);
+    border:1px solid var(--edge);
+    border-radius:2px;
+    padding:13px 14px;
+    font-size:16px;
+    font-family:'Inter',sans-serif;
+    color:var(--paper);
+    transition:border-color .2s;
+  }
+  input:focus{outline:none;border-color:var(--edge-lit);}
+  .privacy{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:13px 0 20px;
+  }
+  .go{
+    width:100%;
+    background:var(--lamp);
+    color:#191410;
+    border:none;
+    border-radius:2px;
+    padding:17px;
+    font-family:'Inter',sans-serif;
+    font-size:15.5px;
+    font-weight:600;
+    cursor:pointer;
+    min-height:48px;
+    transition:background .2s, transform .1s;
+  }
+  .go:hover:not(:disabled){background:var(--lamp-hi);}
+  .go:active:not(:disabled){transform:translateY(1px);}
+  .go:disabled{opacity:.42;cursor:not-allowed;}
+  .assur{
+    display:flex;flex-wrap:wrap;gap:7px 16px;
+    margin-top:16px;
+    font-size:12.5px;color:var(--muted);
+  }
+  .assur span{display:flex;align-items:center;gap:6px;}
+  .assur svg{width:12px;height:12px;flex-shrink:0;}
+
+  #err{
+    display:none;
+    border:1px solid rgba(181,105,90,.45);
+    background:rgba(181,105,90,.10);
+    border-radius:2px;
+    padding:13px 15px;
+    font-size:13.5px;
+    margin-top:16px;
+  }
+
+  .rule{height:1px;background:var(--edge);}
+  .band{padding:64px 0;}
+  .band-h{
+    font-family:'Fraunces',serif;
+    font-weight:300;
+    font-size:clamp(24px,3.4vw,34px);
+    line-height:1.2;
+    margin-bottom:34px;
+    max-width:22ch;
+  }
+  .lines-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1px;
+    background:var(--edge);
+    border:1px solid var(--edge);
+  }
+  .lcell{
+    background:var(--ink);
+    padding:24px 20px;
+  }
+  .lcell i{
+    display:block;
+    width:26px;height:2px;
+    border-radius:2px;
+    margin-bottom:14px;
+  }
+  .lcell h3{
+    font-family:'Fraunces',serif;
+    font-weight:400;
+    font-size:19px;
+    margin-bottom:8px;
+  }
+  .lcell p{
+    font-size:14px;
+    color:var(--paper-dim);
+    line-height:1.6;
+  }
+
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:28px;
+    counter-reset:s;
+  }
+  .step{
+    padding-top:18px;
+    border-top:1px solid var(--edge);
+  }
+  .step::before{
+    counter-increment:s;
+    content:counter(s);
+    font-family:'Fraunces',serif;
+    font-size:13px;
+    color:var(--lamp);
+    display:block;
+    margin-bottom:10px;
+  }
+  .step h3{
+    font-family:'Fraunces',serif;
+    font-weight:400;
+    font-size:18px;
+    margin-bottom:7px;
+  }
+  .step p{font-size:14px;color:var(--paper-dim);}
+
+  .plain{
+    max-width:60ch;
+    font-size:15.5px;
+    color:var(--paper-dim);
+  }
+  .plain p{margin-bottom:14px;}
+  .plain strong{color:var(--paper);font-weight:500;}
+
+  details{border-top:1px solid var(--edge);}
+  details:last-of-type{border-bottom:1px solid var(--edge);}
+  summary{
+    cursor:pointer;
+    list-style:none;
+    padding:18px 32px 18px 0;
+    font-size:15.5px;
+    position:relative;
+    min-height:48px;
+    display:flex;
+    align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{
+    content:'';
+    position:absolute;
+    right:6px;top:50%;
+    width:9px;height:9px;
+    border-right:1.5px solid var(--muted);
+    border-bottom:1.5px solid var(--muted);
+    transform:translateY(-70%) rotate(45deg);
+    transition:transform .22s;
+  }
+  details[open] summary::after{transform:translateY(-30%) rotate(-135deg);}
+  details p{
+    padding:0 0 20px;
+    font-size:14.5px;
+    color:var(--paper-dim);
+    max-width:62ch;
+  }
+
+  .closer{
+    text-align:center;
+    padding:72px 0 84px;
+  }
+  .closer h2{
+    font-family:'Fraunces',serif;
+    font-weight:300;
+    font-style:italic;
+    font-size:clamp(24px,3.6vw,34px);
+    line-height:1.25;
+    margin:0 auto 26px;
+    max-width:20ch;
+  }
+  .up{
+    background:var(--lamp);
+    color:#191410;
+    text-decoration:none;
+    padding:16px 34px;
+    border-radius:2px;
+    font-weight:600;
+    font-size:15.5px;
+    min-height:48px;
+    display:inline-flex;
+    align-items:center;
+  }
+  .up:hover{background:var(--lamp-hi);}
+
   footer{
-    padding: 20px 0 40px;
-    font-size: 12px;
-    color: var(--lavender);
-    opacity: 0.7;
+    border-top:1px solid var(--edge);
+    padding:26px 24px 40px;
+    font-size:12.5px;
+    color:var(--muted);
     text-align:center;
   }
 
-  @media (max-width: 420px){
-    .card{padding:26px 20px;}
+  .rise{
+    opacity:0;
+    transform:translateY(14px);
+    animation:rise .7s cubic-bezier(.2,.6,.2,1) forwards;
+  }
+  .rise.d1{animation-delay:.05s;}
+  .rise.d2{animation-delay:.16s;}
+  .rise.d3{animation-delay:.27s;}
+  .rise.d4{animation-delay:.38s;}
+  @keyframes rise{to{opacity:1;transform:none;}}
+
+  .obs{opacity:0;transform:translateY(16px);transition:opacity .7s, transform .7s;}
+  .obs.seen{opacity:1;transform:none;}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;gap:38px;padding:44px 0 56px;}
+    .palm-wrap{order:-1;}
+    .palm{max-width:236px;}
+    .lines-grid{grid-template-columns:repeat(2,1fr);}
+    .steps{grid-template-columns:1fr;gap:22px;}
+  }
+  @media (max-width:520px){
+    .shell{padding:0 18px;}
+    .band{padding:48px 0;}
+    .benjamin{padding:16px;gap:12px;}
+    .lcell{padding:20px 16px;}
+    .closer{padding:56px 0 64px;}
+  }
+  @media (max-width:360px){
+    .key{gap:6px 12px;font-size:11.5px;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+    }
+    .palm .pline{stroke-dashoffset:0;}
+    .rise,.obs{opacity:1;transform:none;}
   }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="wrap">
-    <div class="brand">SAGE OF SIGNS</div>
-  </div>
-</header>
+<div class="shell">
+  <div class="masthead rise d1">Sage of Signs</div>
 
-<main>
-  <div class="wrap">
+  <section class="hero">
+    <div>
+      <h1 class="rise d2">Almost nothing in a life<span class="turn">reads you back to yourself.</span></h1>
+      <p class="lede rise d3">Your palm is a place to start. Show me your hand and I will read the four lines with you, one at a time, and tell you what they say about how you love, how you decide, and where you are actually standing right now.</p>
 
-    <div class="intro-photo">
-      <div class="benjamin-avatar">B</div>
-      <div>
-        <div class="intro-name">Benjamin</div>
-        <div class="intro-tag">AI-guided reading, live with your palm</div>
+      <div class="benjamin rise d4">
+        <div class="avatar" aria-hidden="true">B</div>
+        <div>
+          <div class="b-name">Benjamin</div>
+          <div class="b-tag">Your reader. AI guided, honest about it.</div>
+          <div class="b-word">I am not going to tell you your future. I am going to tell you what is already in your hand, and you can decide what to do with it.</div>
+        </div>
+      </div>
+
+      <div class="start rise d4">
+        <form id="form" novalidate>
+          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a photo of your palm">
+            <svg class="drop-icon" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+              <rect x="3" y="7" width="28" height="22" rx="2" stroke="#9A8F82" stroke-width="1.4"/>
+              <circle cx="11.5" cy="14.5" r="2.6" stroke="#9A8F82" stroke-width="1.4"/>
+              <path d="M3 24l8-6.5 6.5 5L23 17l8 7.5" stroke="#9A8F82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="drop-title">Take or choose a photo of your palm</div>
+            <div class="drop-sub">Either hand. Good light, palm open, fingers relaxed.</div>
+          </div>
+          <input type="file" id="file" accept="image/*">
+
+          <div class="fields" id="fields">
+            <div class="field">
+              <label for="nm">First name</label>
+              <input type="text" id="nm" autocomplete="given-name" placeholder="What should Benjamin call you?">
+            </div>
+            <div class="field">
+              <label for="em">Email</label>
+              <input type="email" id="em" autocomplete="email" placeholder="you@example.com" required>
+            </div>
+            <p class="privacy">Your photo is used to write your reading and nothing else. It is not sold or shared.</p>
+            <button type="submit" class="go" id="go" disabled>Begin my reading</button>
+            <div class="assur">
+              <span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8.5L6 12L14 4" stroke="#9A8F82" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Free</span>
+              <span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8.5L6 12L14 4" stroke="#9A8F82" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>No card needed</span>
+              <span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8.5L6 12L14 4" stroke="#9A8F82" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>About two minutes</span>
+            </div>
+          </div>
+          <div id="err" role="alert"></div>
+        </form>
       </div>
     </div>
 
-    <h1>Show me your palm, <em>I'll show you what it says.</em></h1>
-    <p class="lede">A clear photo of either hand is enough. I'll read your heart, head, life, and fate lines with you, in real time, and it costs nothing.</p>
-
-    <div class="card">
-      <form id="optin-form" novalidate>
-
-        <div class="upload-zone" id="upload-zone" tabindex="0" role="button" aria-pressed="false">
-          <svg class="upload-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="8" width="32" height="26" rx="2" stroke="#9C96B8" stroke-width="1.5"/>
-            <circle cx="14" cy="17" r="3" stroke="#9C96B8" stroke-width="1.5"/>
-            <path d="M4 28L14 20L22 26L28 20L36 27" stroke="#9C96B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <div class="upload-label">Choose a photo of your palm</div>
-          <div class="upload-sub">Good light, palm flat, fingers relaxed</div>
+    <div class="palm-wrap rise d3">
+      <div>
+        <svg class="palm" viewBox="0 0 260 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a palm with the heart, head, life and fate lines marked">
+          <path class="outline" d="M74 300 C56 268 44 232 42 196 C40 168 44 150 52 142 C60 134 70 137 74 148 L84 178 L84 96 C84 84 92 76 102 76 C112 76 120 84 120 96 L120 166 L120 74 C120 62 128 54 138 54 C148 54 156 62 156 74 L156 166 L156 86 C156 74 164 66 174 66 C184 66 192 74 192 86 L192 172 L192 116 C192 105 199 98 208 98 C217 98 224 105 224 116 L224 196 C224 234 214 270 196 300 Z"/>
+          <path class="pline l-heart" d="M62 176 C92 160 128 156 158 162 C176 166 190 174 200 184"/>
+          <path class="pline l-head"  d="M60 198 C90 190 126 190 154 198 C172 203 186 210 196 218"/>
+          <path class="pline l-life"  d="M68 182 C74 208 84 236 100 258 C112 274 126 288 140 298"/>
+          <path class="pline l-fate"  d="M148 296 C144 264 142 236 144 208 C145 194 147 184 150 176"/>
+        </svg>
+        <div class="key">
+          <span><i style="background:#E0A24A"></i>Heart</span>
+          <span><i style="background:#F0BC6C"></i>Head</span>
+          <span><i style="background:#B5695A"></i>Life</span>
+          <span><i style="background:#9C8FA8"></i>Fate</span>
         </div>
-        <input type="file" id="photo-input" accept="image/*" capture="environment">
-
-        <div class="fields" id="fields">
-          <div class="field">
-            <label for="name-input">First name</label>
-            <input type="text" id="name-input" name="name" autocomplete="given-name" placeholder="What should Benjamin call you?">
-          </div>
-          <div class="field">
-            <label for="email-input">Email</label>
-            <input type="email" id="email-input" name="email" autocomplete="email" placeholder="you@example.com" required>
-          </div>
-
-          <div class="privacy-note">
-            Your photo is used only to generate your reading and is not shared, sold, or stored beyond what's needed to deliver it to you.
-          </div>
-
-          <button type="submit" class="submit" id="submit-btn" disabled>Begin my reading, free</button>
-
-          <div class="trust-row">
-            <span>
-              <svg viewBox="0 0 16 16" fill="none"><path d="M2 8.5L6 12L14 4" stroke="#9C96B8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Free reading
-            </span>
-            <span>
-              <svg viewBox="0 0 16 16" fill="none"><path d="M2 8.5L6 12L14 4" stroke="#9C96B8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              No card needed
-            </span>
-            <span>
-              <svg viewBox="0 0 16 16" fill="none"><path d="M2 8.5L6 12L14 4" stroke="#9C96B8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Takes about a minute
-            </span>
-          </div>
-        </div>
-
-        <div id="error-region" role="alert"></div>
-      </form>
+      </div>
     </div>
+  </section>
+</div>
 
-  </div>
-</main>
+<div class="rule"></div>
+
+<div class="shell">
+  <section class="band obs">
+    <h2 class="band-h">Four lines, and what each one is actually about.</h2>
+    <div class="lines-grid">
+      <div class="lcell">
+        <i style="background:#E0A24A"></i>
+        <h3>Heart</h3>
+        <p>How you attach, what you need to feel safe, and what you do when you stop feeling it.</p>
+      </div>
+      <div class="lcell">
+        <i style="background:#F0BC6C"></i>
+        <h3>Head</h3>
+        <p>How you actually decide. Whether you move on instinct or turn things over until they wear thin.</p>
+      </div>
+      <div class="lcell">
+        <i style="background:#B5695A"></i>
+        <h3>Life</h3>
+        <p>Your energy and footing. Not how long you live, which no line can tell you.</p>
+      </div>
+      <div class="lcell">
+        <i style="background:#9C8FA8"></i>
+        <h3>Fate</h3>
+        <p>How much of your direction comes from you, and how much has been handed to you.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="rule"></div>
+
+<div class="shell">
+  <section class="band obs">
+    <h2 class="band-h">How this goes.</h2>
+    <div class="steps">
+      <div class="step">
+        <h3>You send a photo</h3>
+        <p>One hand, one photo. No account, no card, nothing to install.</p>
+      </div>
+      <div class="step">
+        <h3>Benjamin reads it with you</h3>
+        <p>Line by line, in a conversation, not a report. He stops and asks what lands and what does not.</p>
+      </div>
+      <div class="step">
+        <h3>You keep the whole reading</h3>
+        <p>All four lines, free. If you want to go deeper into one part of your life afterward, that part is optional.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="rule"></div>
+
+<div class="shell">
+  <section class="band obs">
+    <h2 class="band-h">Plainly, before you start.</h2>
+    <div class="plain">
+      <p><strong>Palmistry cannot predict your future.</strong> There is no evidence that it can, and Benjamin will never give you a date, a name, or a promise about what is going to happen.</p>
+      <p>What it can do is give you language. Most people carry patterns they have felt for years and never had said back to them plainly. That is the thing that is actually useful here, and that is the part people tend to sit with afterward.</p>
+      <p>Read it the way you would read a good letter about yourself. Keep what fits. Leave what does not.</p>
+    </div>
+  </section>
+</div>
+
+<div class="rule"></div>
+
+<div class="shell">
+  <section class="band obs">
+    <h2 class="band-h">Questions people ask first.</h2>
+    <details>
+      <summary>Is this really free?</summary>
+      <p>The full reading of all four lines is free, with no card and no account. Afterward you can choose to go deeper into one area of your life, and that part is paid. You will see the price before anything else happens.</p>
+    </details>
+    <details>
+      <summary>What happens to my photo?</summary>
+      <p>It is used to write your reading and nothing else. It is not sold, shared, or published anywhere.</p>
+    </details>
+    <details>
+      <summary>How is this different from a horoscope?</summary>
+      <p>A horoscope is written once for millions of people born in the same month. This is written from your hand, and it commits to specific things that could be wrong about you rather than safe things that are true about everyone.</p>
+    </details>
+    <details>
+      <summary>Is a person reading my palm?</summary>
+      <p>No. Benjamin is an AI reader, and we say so plainly rather than pretending otherwise. The reading is written fresh from your photo, not pulled from a template.</p>
+    </details>
+    <details>
+      <summary>What if my photo is not good enough?</summary>
+      <p>Benjamin will tell you what to fix and let you try again rather than guessing at lines he cannot see.</p>
+    </details>
+  </section>
+</div>
+
+<div class="rule"></div>
+
+<div class="shell">
+  <section class="closer obs">
+    <h2>Your hand has been keeping this record the whole time.</h2>
+    <a class="up" href="#" id="upTop">Read my palm, free</a>
+  </section>
+</div>
 
 <footer>
-  For self-reflection and entertainment. Not a substitute for professional, medical, legal, or financial advice.
+  For self reflection and entertainment. Not a substitute for professional, medical, legal, or financial advice.
 </footer>
 
 <script>
 (function(){
-  const uploadZone = document.getElementById('upload-zone');
-  const photoInput = document.getElementById('photo-input');
-  const fields = document.getElementById('fields');
-  const submitBtn = document.getElementById('submit-btn');
-  const nameInput = document.getElementById('name-input');
-  const emailInput = document.getElementById('email-input');
-  const errorRegion = document.getElementById('error-region');
-  const form = document.getElementById('optin-form');
+  var drop=document.getElementById('drop');
+  var file=document.getElementById('file');
+  var fields=document.getElementById('fields');
+  var go=document.getElementById('go');
+  var nm=document.getElementById('nm');
+  var em=document.getElementById('em');
+  var err=document.getElementById('err');
+  var form=document.getElementById('form');
+  var chosen=null;
 
-  let chosenFile = null;
-
-  function openZone(){ photoInput.click(); }
-  uploadZone.addEventListener('click', openZone);
-  uploadZone.addEventListener('keydown', function(e){
-    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openZone(); }
+  function pick(){ file.click(); }
+  drop.addEventListener('click',pick);
+  drop.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); }
   });
 
-  photoInput.addEventListener('change', function(){
-    const file = photoInput.files[0];
-    if(!file) return;
-    chosenFile = file;
-    renderChosenPhoto(file);
-    fields.classList.add('open');
-    uploadZone.setAttribute('aria-pressed', 'true');
-    validate();
-  });
-
-  function renderChosenPhoto(file){
-    const reader = new FileReader();
-    reader.onload = function(e){
-      uploadZone.classList.add('has-photo');
-      uploadZone.innerHTML =
-        '<img class="photo-preview" src="' + e.target.result + '" alt="Your uploaded palm photo">' +
-        '<div class="photo-meta">' +
-          '<div class="photo-name">' + escapeHtml(file.name) + '</div>' +
-          '<button type="button" class="photo-change" id="change-photo-btn">Choose a different photo</button>' +
-        '</div>';
-      document.getElementById('change-photo-btn').addEventListener('click', function(e){
-        e.stopPropagation();
-        photoInput.click();
-      });
+  file.addEventListener('change',function(){
+    var f=file.files[0];
+    if(!f) return;
+    chosen=f;
+    var r=new FileReader();
+    r.onload=function(e){
+      drop.classList.add('filled');
+      drop.removeAttribute('tabindex');
+      drop.removeAttribute('role');
+      drop.innerHTML='';
+      var img=document.createElement('img');
+      img.className='thumb'; img.src=e.target.result; img.alt='Your palm photo';
+      var meta=document.createElement('div');
+      meta.className='thumb-meta';
+      var nmEl=document.createElement('div');
+      nmEl.className='thumb-name'; nmEl.textContent=f.name;
+      var sw=document.createElement('button');
+      sw.type='button'; sw.className='swap'; sw.textContent='Choose a different photo';
+      sw.addEventListener('click',function(ev){ ev.stopPropagation(); file.click(); });
+      meta.appendChild(nmEl); meta.appendChild(sw);
+      drop.appendChild(img); drop.appendChild(meta);
+      fields.classList.add('open');
+      check();
     };
-    reader.readAsDataURL(file);
-  }
+    r.readAsDataURL(f);
+  });
 
-  function escapeHtml(str){
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
+  function valid(){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim()); }
+  function check(){ go.disabled=!(chosen&&valid()); }
+  em.addEventListener('input',check);
+  nm.addEventListener('input',check);
 
-  function validate(){
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
-    submitBtn.disabled = !(chosenFile && emailOk);
-  }
+  function fail(m){ err.textContent=m; err.style.display='block'; }
 
-  emailInput.addEventListener('input', validate);
-  nameInput.addEventListener('input', validate);
-
-  form.addEventListener('submit', function(e){
+  form.addEventListener('submit',function(e){
     e.preventDefault();
-    errorRegion.style.display = 'none';
-
-    if(!chosenFile){
-      showError('Please choose a photo of your palm first.');
-      return;
-    }
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())){
-      showError('Please enter a valid email address.');
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'One moment...';
-
-    const reader = new FileReader();
-    reader.onload = function(e){
+    err.style.display='none';
+    if(!chosen){ fail('Please choose a photo of your palm first.'); return; }
+    if(!valid()){ fail('Please enter a valid email address.'); return; }
+    go.disabled=true; go.textContent='One moment';
+    var r=new FileReader();
+    r.onload=function(ev){
       try{
-        sessionStorage.setItem('benjamin_photo_preview', e.target.result);
-        sessionStorage.setItem('benjamin_name', nameInput.value.trim());
-        sessionStorage.setItem('benjamin_email', emailInput.value.trim());
+        sessionStorage.setItem('benjamin_photo_preview',ev.target.result);
+        sessionStorage.setItem('benjamin_name',nm.value.trim());
+        sessionStorage.setItem('benjamin_email',em.value.trim());
         sessionStorage.removeItem('benjamin_reading');
         sessionStorage.removeItem('benjamin_category');
         sessionStorage.removeItem('benjamin_owned');
-        sessionStorage.removeItem('benjamin_report');
-        window.location.href = '/reading.html';
-      }catch(err){
-        showError('Something went wrong preparing your reading. Please try again.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Begin my reading, free';
+        sessionStorage.removeItem('benjamin_checkins');
+        window.location.href='/reading.html';
+      }catch(x){
+        fail('Something went wrong preparing your reading. Please try again.');
+        go.disabled=false; go.textContent='Begin my reading';
       }
     };
-    reader.readAsDataURL(chosenFile);
+    r.readAsDataURL(chosen);
   });
 
-  function showError(msg){
-    errorRegion.textContent = msg;
-    errorRegion.style.display = 'block';
+  document.getElementById('upTop').addEventListener('click',function(e){
+    e.preventDefault();
+    window.scrollTo({top:0,behavior:'smooth'});
+    setTimeout(function(){ if(!chosen) drop.focus(); },600);
+  });
+
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('seen'); io.unobserve(en.target); }
+      });
+    },{threshold:.12});
+    document.querySelectorAll('.obs').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.obs').forEach(function(el){ el.classList.add('seen'); });
   }
 })();
 </script>
