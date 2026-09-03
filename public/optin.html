@@ -44,6 +44,17 @@
     z-index:0;
     animation:breathe 11s ease-in-out infinite;
   }
+  body::after{
+    content:'';
+    position:fixed;
+    bottom:-35vh; right:-25vw;
+    width:80vw; height:85vh;
+    max-width:980px; max-height:980px;
+    background:radial-gradient(circle at 50% 50%, rgba(181,105,90,0.09), rgba(181,105,90,0.03) 45%, transparent 70%);
+    pointer-events:none;
+    z-index:0;
+    animation:breathe 14s ease-in-out infinite 2s;
+  }
   @keyframes breathe{
     0%,100%{opacity:.85; transform:scale(1);}
     50%{opacity:1; transform:scale(1.05);}
@@ -52,7 +63,7 @@
   .shell{
     position:relative;
     z-index:1;
-    max-width:1080px;
+    max-width:1140px;
     margin:0 auto;
     padding:0 24px;
   }
@@ -183,14 +194,8 @@
     border-radius:2px;
     padding:30px 22px;
     text-align:center;
-    cursor:pointer;
     transition:border-color .25s, background .25s;
     background:rgba(237,230,218,0.015);
-  }
-  .drop:hover,.drop:focus-visible{
-    border-color:var(--edge-lit);
-    background:rgba(224,162,74,0.05);
-    outline:none;
   }
   .drop.filled{
     border-style:solid;
@@ -205,6 +210,35 @@
   .drop-icon{width:34px;height:34px;margin:0 auto 12px;opacity:.6;}
   .drop-title{font-size:15.5px;font-weight:500;}
   .drop-sub{font-size:13px;color:var(--muted);margin-top:5px;}
+  .src-row{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-top:20px;
+    flex-wrap:wrap;
+  }
+  .src-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--ink-2);
+    border:1px solid var(--edge);
+    border-radius:2px;
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:500;
+    padding:12px 18px;
+    cursor:pointer;
+    min-height:44px;
+    transition:border-color .2s, background .2s;
+  }
+  .src-btn svg{width:17px;height:17px;color:var(--lamp);flex-shrink:0;}
+  .src-btn:hover,.src-btn:focus-visible{
+    border-color:var(--edge-lit);
+    background:rgba(224,162,74,0.07);
+    outline:none;
+  }
   .preparing{
     display:flex;
     align-items:center;
@@ -520,16 +554,27 @@
 
       <div class="start rise d4">
         <form id="form" novalidate>
-          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a photo of your palm">
+          <div class="drop" id="drop">
             <svg class="drop-icon" viewBox="0 0 34 34" fill="none" aria-hidden="true">
               <rect x="3" y="7" width="28" height="22" rx="2" stroke="#9A8F82" stroke-width="1.4"/>
               <circle cx="11.5" cy="14.5" r="2.6" stroke="#9A8F82" stroke-width="1.4"/>
               <path d="M3 24l8-6.5 6.5 5L23 17l8 7.5" stroke="#9A8F82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <div class="drop-title">Take or choose a photo of your dominant hand</div>
+            <div class="drop-title">Add a photo of your dominant hand</div>
             <div class="drop-sub">The hand you write with, usually your right hand, or your left if you're left-handed. This is the hand palmistry reads from. Good light, palm open, fingers relaxed.</div>
+            <div class="src-row">
+              <button type="button" class="src-btn" id="camBtn">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 7a1.5 1.5 0 0 1 1.5-1.5h1.2l.6-1.2A1.5 1.5 0 0 1 7.6 3.5h4.8a1.5 1.5 0 0 1 1.3.8l.6 1.2h1.2A1.5 1.5 0 0 1 17 7v7.5A1.5 1.5 0 0 1 15.5 16h-11A1.5 1.5 0 0 1 3 14.5V7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="10" cy="10.5" r="2.6" stroke="currentColor" stroke-width="1.3"/></svg>
+                Take a photo
+              </button>
+              <button type="button" class="src-btn" id="galBtn">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="1.4" stroke="currentColor" stroke-width="1.3"/><circle cx="7" cy="8" r="1.4" stroke="currentColor" stroke-width="1.3"/><path d="M3 14l4.2-4 3 2.6L14 9l3 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Choose from gallery
+              </button>
+            </div>
           </div>
-          <input type="file" id="file" accept="image/*" capture="environment">
+          <input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none;">
+          <input type="file" id="fileGal" accept="image/*" style="display:none;">
 
           <div class="fields" id="fields">
             <div class="field">
@@ -714,7 +759,10 @@
   }
 
   var drop=document.getElementById('drop');
-  var file=document.getElementById('file');
+  var fileCam=document.getElementById('fileCam');
+  var fileGal=document.getElementById('fileGal');
+  var camBtn=document.getElementById('camBtn');
+  var galBtn=document.getElementById('galBtn');
   var fields=document.getElementById('fields');
   var go=document.getElementById('go');
   var nm=document.getElementById('nm');
@@ -723,22 +771,17 @@
   var form=document.getElementById('form');
   var chosen=null;
   var chosenCompressed=null;
+  var pickerHTML=drop.innerHTML;
 
-  function pick(){ file.click(); }
-  drop.addEventListener('click',pick);
-  drop.addEventListener('keydown',function(e){
-    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); }
-  });
+  camBtn.addEventListener('click',function(){ fileCam.click(); });
+  galBtn.addEventListener('click',function(){ fileGal.click(); });
 
-  file.addEventListener('change',function(){
-    var f=file.files[0];
+  function handleFile(f){
     if(!f) return;
     chosen=f;
     chosenCompressed=null;
 
     drop.classList.add('filled');
-    drop.removeAttribute('tabindex');
-    drop.removeAttribute('role');
     drop.innerHTML='<div class="preparing"><i class="prep-dot"></i>Preparing your photo</div>';
 
     var r=new FileReader();
@@ -755,14 +798,28 @@
       nmEl.className='thumb-name'; nmEl.textContent=f.name;
       var sw=document.createElement('button');
       sw.type='button'; sw.className='swap'; sw.textContent='Choose a different photo';
-      sw.addEventListener('click',function(ev){ ev.stopPropagation(); file.click(); });
+      sw.addEventListener('click',function(ev){
+        ev.stopPropagation();
+        drop.classList.remove('filled');
+        drop.innerHTML=pickerHTML;
+        camBtn=document.getElementById('camBtn');
+        galBtn=document.getElementById('galBtn');
+        camBtn.addEventListener('click',function(){ fileCam.click(); });
+        galBtn.addEventListener('click',function(){ fileGal.click(); });
+        chosen=null; chosenCompressed=null;
+        fields.classList.remove('open');
+        check();
+      });
       meta.appendChild(nmEl); meta.appendChild(sw);
       drop.appendChild(img); drop.appendChild(meta);
       fields.classList.add('open');
       check();
     };
     r.readAsDataURL(f);
-  });
+  }
+
+  fileCam.addEventListener('change',function(){ handleFile(fileCam.files[0]); });
+  fileGal.addEventListener('change',function(){ handleFile(fileGal.files[0]); });
 
   function valid(){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim()); }
   function check(){ go.disabled=!(chosen&&chosenCompressed&&valid()); }
