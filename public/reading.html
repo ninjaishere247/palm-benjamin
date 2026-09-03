@@ -3,759 +3,577 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Reading, with Benjamin | Sage of Signs</title>
+<title>Your reading, with Benjamin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --void: #12142B;
-    --void-deep: #0E1024;
-    --plum: #241832;
-    --plum-light: #2C1F3D;
-    --parchment: #F0E8D8;
-    --gold: #C9A227;
-    --gold-lit: #E0BC4A;
-    --copper: #C06B33;
-    --lavender: #9C96B8;
-    --line: rgba(240,232,216,0.14);
+    --ink:#14110F;
+    --ink-2:#1C1815;
+    --card:#221D19;
+    --edge:rgba(237,230,218,0.10);
+    --edge-lit:rgba(224,162,74,0.45);
+    --paper:#EDE6DA;
+    --paper-dim:rgba(237,230,218,0.62);
+    --lamp:#E0A24A;
+    --lamp-hi:#F0BC6C;
+    --clay:#B5695A;
+    --muted:#9A8F82;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
   body{
-    background: var(--void-deep);
-    color: var(--parchment);
-    font-family: 'Inter', sans-serif;
-    line-height: 1.6;
-    min-height: 100vh;
-    display:flex;
-    flex-direction:column;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.65;
+    min-height:100vh;
+    overflow-x:hidden;
   }
-  header.top{
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--line);
-    display:flex;
-    align-items:center;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    background: var(--void-deep);
-    z-index: 10;
+  body::before{
+    content:'';
+    position:fixed;
+    top:-25vh;left:50%;
+    transform:translateX(-50%);
+    width:130vw;height:80vh;
+    max-width:1200px;
+    background:radial-gradient(ellipse at 50% 40%, rgba(224,162,74,0.13), rgba(224,162,74,0.04) 45%, transparent 70%);
+    pointer-events:none;z-index:0;
+    animation:breathe 12s ease-in-out infinite;
   }
-  .benjamin-avatar{
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, #3a2f52, var(--plum) 70%);
-    border: 1px solid var(--line);
+  @keyframes breathe{
+    0%,100%{opacity:.85;}
+    50%{opacity:1;}
+  }
+
+  header{
+    position:sticky;top:0;z-index:20;
+    background:rgba(20,17,15,.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--edge);
+    padding:13px 20px;
+  }
+  .hbar{
+    max-width:680px;margin:0 auto;
+    display:flex;align-items:center;gap:12px;
+  }
+  .avatar{
+    border-radius:50%;
     flex-shrink:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:'Fraunces', serif;
-    font-size: 16px;
-    color: var(--gold-lit);
+    background:radial-gradient(circle at 34% 30%, #4A3B2C, #2A231D 72%);
+    border:1px solid var(--edge-lit);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    color:var(--lamp-hi);
   }
-  .header-text{ line-height: 1.3; }
-  .header-name{
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    color: var(--gold);
+  .avatar.lg{width:42px;height:42px;font-size:19px;}
+  .avatar.sm{width:30px;height:30px;font-size:13px;margin-top:2px;}
+  .avatar.xl{width:66px;height:66px;font-size:28px;}
+  .hname{font-family:'Fraunces',serif;font-size:16px;line-height:1.25;}
+  .hstate{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+  .hstate.live::before{
+    content:'';width:6px;height:6px;border-radius:50%;
+    background:var(--lamp);
+    animation:blip 1.7s ease-in-out infinite;
   }
-  .header-status{
-    font-size: 12px;
-    color: var(--lavender);
-  }
-  .header-status.live::before{
-    content: '';
-    display:inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--gold-lit);
-    margin-right: 6px;
-    animation: pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes pulse{
-    0%, 100%{ opacity: 1; }
-    50%{ opacity: 0.3; }
-  }
+  @keyframes blip{0%,100%{opacity:1;}50%{opacity:.25;}}
 
   main{
-    flex:1;
-    max-width: 620px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 24px 20px 140px;
+    position:relative;z-index:1;
+    max-width:680px;margin:0 auto;
+    padding:26px 20px 120px;
   }
 
+  /* opening */
+  #open-scr{
+    display:flex;flex-direction:column;align-items:center;
+    text-align:center;padding:74px 10px;
+  }
+  #open-scr .avatar{margin-bottom:20px;}
+  #open-scr h2{
+    font-family:'Fraunces',serif;font-weight:300;
+    font-size:23px;margin-bottom:8px;
+  }
+  #open-scr p{color:var(--muted);font-size:14.5px;}
+  .dots{display:inline-flex;gap:4px;margin-left:3px;}
+  .dots i{
+    width:3px;height:3px;border-radius:50%;background:var(--muted);
+    animation:bob 1.3s infinite;
+  }
+  .dots i:nth-child(2){animation-delay:.16s;}
+  .dots i:nth-child(3){animation-delay:.32s;}
+  @keyframes bob{0%,60%,100%{opacity:.3;}30%{opacity:1;}}
+
+  /* messages */
   .msg{
-    display:flex;
-    gap: 12px;
-    margin-bottom: 22px;
-    opacity: 0;
-    transform: translateY(8px);
-    animation: rise 0.5s ease forwards;
+    display:flex;gap:11px;margin-bottom:16px;
+    opacity:0;transform:translateY(9px);
+    animation:in .45s ease forwards;
   }
-  @keyframes rise{
-    to{ opacity: 1; transform: translateY(0); }
+  @keyframes in{to{opacity:1;transform:none;}}
+  .body{min-width:0;flex:1;}
+
+  .bub{
+    background:var(--card);
+    border:1px solid var(--edge);
+    border-radius:3px 12px 12px 12px;
+    padding:13px 16px;
+    font-size:15.5px;
+    max-width:100%;
+    width:fit-content;
   }
-  .msg .avatar-small{
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, #3a2f52, var(--plum) 70%);
-    border: 1px solid var(--line);
-    flex-shrink:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:'Fraunces', serif;
-    font-size: 13px;
-    color: var(--gold-lit);
-    margin-top: 2px;
+  .bub.aside{
+    background:transparent;border:none;padding:3px 0;
+    font-family:'Fraunces',serif;font-style:italic;
+    color:var(--paper-dim);font-size:15.5px;
   }
-  .bubble{
-    background: var(--plum);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 14px 16px;
-    max-width: 480px;
-    font-size: 15.5px;
+  .bub.mark{
+    border-color:var(--edge-lit);
+    background:linear-gradient(180deg, rgba(224,162,74,.07), var(--card) 70%);
+    border-radius:3px;
   }
-  .bubble.commentary{
-    background: transparent;
-    border: none;
-    padding: 4px 0;
-    font-style: italic;
-    color: var(--lavender);
-    font-family: 'Fraunces', serif;
-    font-size: 15px;
-  }
-  .bubble.section{
-    background: var(--plum);
-  }
-  .section-label{
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--copper);
-    margin-bottom: 8px;
+  .tag{
     display:block;
+    font-family:'Fraunces',serif;
+    font-size:11.5px;letter-spacing:.09em;
+    color:var(--lamp);
+    margin-bottom:9px;
   }
-  .bubble.clash{
-    background: var(--plum-light);
-    border-color: var(--gold);
-  }
-  .bubble.clash .section-label{
-    color: var(--gold-lit);
-  }
+  .bub.mark .tag{color:var(--lamp-hi);}
 
-  .typing-indicator{
-    display:flex;
-    gap: 5px;
-    padding: 16px 18px;
-    background: var(--plum);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    width: fit-content;
+  .typing{
+    display:flex;gap:5px;
+    background:var(--card);
+    border:1px solid var(--edge);
+    border-radius:3px 12px 12px 12px;
+    padding:15px 17px;width:fit-content;
   }
-  .typing-indicator span{
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--lavender);
-    animation: bounce 1.2s infinite;
+  .typing i{
+    width:6px;height:6px;border-radius:50%;background:var(--muted);
+    animation:bob 1.25s infinite;
   }
-  .typing-indicator span:nth-child(2){ animation-delay: 0.15s; }
-  .typing-indicator span:nth-child(3){ animation-delay: 0.3s; }
-  @keyframes bounce{
-    0%, 60%, 100%{ transform: translateY(0); opacity: 0.5; }
-    30%{ transform: translateY(-4px); opacity: 1; }
-  }
+  .typing i:nth-child(2){animation-delay:.16s;}
+  .typing i:nth-child(3){animation-delay:.32s;}
 
-  #connecting-screen{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding: 80px 20px;
-    text-align:center;
+  /* choices */
+  .picks{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
+  .pick{
+    background:transparent;
+    border:1px solid var(--edge);
+    border-radius:20px;
+    color:var(--paper);
+    padding:10px 17px;
+    font:inherit;font-size:14.5px;
+    cursor:pointer;
+    min-height:42px;
+    transition:border-color .2s, background .2s, color .2s;
   }
-  #connecting-screen .benjamin-avatar{
-    width: 64px;
-    height: 64px;
-    font-size: 26px;
-    margin-bottom: 20px;
-  }
-  #connecting-screen h2{
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: 20px;
-    margin-bottom: 8px;
-  }
-  #connecting-screen p{
-    color: var(--lavender);
-    font-size: 14px;
-  }
+  .pick:hover:not(:disabled){border-color:var(--edge-lit);background:rgba(224,162,74,.07);}
+  .pick.on{background:var(--lamp);border-color:var(--lamp);color:#191410;font-weight:600;}
+  .pick:disabled{cursor:default;opacity:.4;}
+  .pick.on:disabled{opacity:1;}
 
-  #continue-area{
+  /* end */
+  #end{display:none;margin-top:30px;text-align:center;}
+  #end p{
+    font-family:'Fraunces',serif;font-style:italic;
+    color:var(--paper-dim);font-size:16px;
+    margin-bottom:18px;max-width:34ch;
+    margin-left:auto;margin-right:auto;
+  }
+  .next{
+    background:var(--lamp);color:#191410;
+    border:none;border-radius:2px;
+    padding:16px 30px;
+    font:inherit;font-size:15.5px;font-weight:600;
+    cursor:pointer;min-height:48px;
+    transition:background .2s;
+  }
+  .next:hover{background:var(--lamp-hi);}
+
+  #err{
     display:none;
-    margin-top: 28px;
-    text-align:center;
+    border:1px solid rgba(181,105,90,.45);
+    background:rgba(181,105,90,.10);
+    border-radius:2px;padding:16px 18px;
+    font-size:14.5px;margin:22px 0;
   }
-  button.continue-btn{
-    background: var(--gold);
-    color: var(--void-deep);
-    border: none;
-    border-radius: 3px;
-    padding: 16px 32px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    min-height: 44px;
-  }
-  button.continue-btn:hover{ background: var(--gold-lit); }
+  #err a{color:var(--lamp);}
 
-  #error-region{
-    display:none;
-    background: rgba(192,107,51,0.12);
-    border: 1px solid rgba(192,107,51,0.4);
-    border-radius: 3px;
-    padding: 16px 18px;
-    font-size: 14px;
-    margin: 20px 0;
+  /* exit */
+  #exit{
+    display:none;position:fixed;inset:0;z-index:60;
+    background:rgba(12,10,9,.9);
+    align-items:center;justify-content:center;padding:22px;
   }
-  #error-region a{ color: var(--gold-lit); }
-
-  #exit-modal{
-    display:none;
-    position: fixed;
-    inset: 0;
-    background: rgba(14,16,36,0.88);
-    z-index: 100;
-    align-items:center;
-    justify-content:center;
-    padding: 24px;
-  }
-  #exit-modal.open{ display:flex; }
+  #exit.on{display:flex;}
   .exit-card{
-    background: var(--plum);
-    border: 1px solid var(--gold);
-    border-radius: 4px;
-    padding: 30px 26px;
-    max-width: 400px;
-    text-align:center;
+    background:var(--card);
+    border:1px solid var(--edge-lit);
+    border-radius:3px;
+    padding:30px 26px;max-width:400px;text-align:center;
   }
-  .exit-card .benjamin-avatar{
-    margin: 0 auto 14px;
-  }
+  .exit-card .avatar{margin:0 auto 15px;}
   .exit-card h3{
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: 19px;
-    margin-bottom: 10px;
+    font-family:'Fraunces',serif;font-weight:300;
+    font-size:20px;margin-bottom:11px;
   }
   .exit-card p{
-    font-size: 14.5px;
-    color: var(--parchment);
-    opacity: 0.85;
-    margin-bottom: 22px;
+    font-size:14.5px;color:var(--paper-dim);margin-bottom:22px;
   }
-  .exit-actions{
-    display:flex;
-    flex-direction:column;
-    gap: 10px;
+  .stay{
+    width:100%;background:var(--lamp);color:#191410;
+    border:none;border-radius:2px;padding:14px;
+    font:inherit;font-weight:600;cursor:pointer;min-height:46px;
+    margin-bottom:9px;
   }
-  .exit-stay{
-    background: var(--gold);
-    color: var(--void-deep);
-    border:none;
-    border-radius: 3px;
-    padding: 14px;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    cursor:pointer;
-    min-height:44px;
-  }
-  .exit-leave{
-    background: none;
-    border: none;
-    color: var(--lavender);
-    font-size: 13px;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    padding: 6px;
+  .stay:hover{background:var(--lamp-hi);}
+  .leave{
+    background:none;border:none;color:var(--muted);
+    font:inherit;font-size:13px;cursor:pointer;padding:8px;
+    text-decoration:underline;text-underline-offset:3px;
   }
 
-  .choice-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap: 8px;
-  }
-  .choice-btn{
-    background: var(--void);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    color: var(--parchment);
-    padding: 10px 14px;
-    font-size: 14px;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
-    min-height: 40px;
-  }
-  .choice-btn:hover:not(:disabled){
-    border-color: var(--gold);
-    background: rgba(201,162,39,0.06);
-  }
-  .choice-btn.selected{
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--void-deep);
-    font-weight: 600;
-  }
-  .choice-btn:disabled{
-    cursor: default;
-    opacity: 0.55;
-  }
-  .choice-btn.selected:disabled{
-    opacity: 1;
+  @media (max-width:520px){
+    main{padding:20px 15px 100px;}
+    .bub{font-size:15px;padding:12px 14px;}
+    .msg{gap:9px;}
+    #open-scr{padding:56px 8px;}
   }
 
-  [role="alert"]{}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+    }
+  }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="benjamin-avatar">B</div>
-  <div class="header-text">
-    <div class="header-name">Benjamin</div>
-    <div class="header-status live" id="header-status">Reading your palm</div>
+<header>
+  <div class="hbar">
+    <div class="avatar lg" aria-hidden="true">B</div>
+    <div>
+      <div class="hname">Benjamin</div>
+      <div class="hstate live" id="hstate">Reading your palm</div>
+    </div>
   </div>
 </header>
 
 <main>
-  <div id="connecting-screen">
-    <div class="benjamin-avatar">B</div>
-    <h2>Connecting…</h2>
-    <p>Benjamin is opening your photo now.</p>
+  <div id="open-scr">
+    <div class="avatar xl" aria-hidden="true">B</div>
+    <h2>Opening your photo<span class="dots"><i></i><i></i><i></i></span></h2>
+    <p>Give me a moment with this.</p>
   </div>
 
-  <div id="chat-log" aria-live="polite" style="display:none;"></div>
+  <div id="log" aria-live="polite" style="display:none;"></div>
 
-  <div id="error-region" role="alert"></div>
+  <div id="err" role="alert"></div>
 
-  <div id="continue-area">
-    <button class="continue-btn" id="continue-btn">Where does this show up for you?</button>
+  <div id="end">
+    <p>That tension shows up differently depending on where it is actually costing you.</p>
+    <button class="next" id="next">Show me where</button>
   </div>
 </main>
 
-<div id="exit-modal" role="dialog" aria-modal="true">
+<div id="exit" role="dialog" aria-modal="true" aria-labelledby="exit-h">
   <div class="exit-card">
-    <div class="benjamin-avatar">B</div>
-    <h3>Your reading is still open.</h3>
-    <p>What's in your lines doesn't change if you leave. It only goes unread. This is free, and I'm already here.</p>
-    <div class="exit-actions">
-      <button class="exit-stay" id="exit-stay-btn">Stay with my reading</button>
-      <button class="exit-leave" id="exit-leave-btn">Leave it unread</button>
-    </div>
+    <div class="avatar xl" aria-hidden="true">B</div>
+    <h3 id="exit-h">Your reading is still open.</h3>
+    <p>What is in your lines does not change if you leave. It only goes unread. This is free, and I am already here.</p>
+    <button class="stay" id="stay">Stay with my reading</button>
+    <button class="leave" id="leave">Leave it unread</button>
   </div>
 </div>
 
 <script>
 (function(){
-  const chatLog = document.getElementById('chat-log');
-  const connectingScreen = document.getElementById('connecting-screen');
-  const errorRegion = document.getElementById('error-region');
-  const continueArea = document.getElementById('continue-area');
-  const continueBtn = document.getElementById('continue-btn');
-  const headerStatus = document.getElementById('header-status');
-  const exitModal = document.getElementById('exit-modal');
-  const exitStayBtn = document.getElementById('exit-stay-btn');
-  const exitLeaveBtn = document.getElementById('exit-leave-btn');
+  var log=document.getElementById('log');
+  var openScr=document.getElementById('open-scr');
+  var err=document.getElementById('err');
+  var end=document.getElementById('end');
+  var nextBtn=document.getElementById('next');
+  var hstate=document.getElementById('hstate');
+  var exit=document.getElementById('exit');
+  var stayBtn=document.getElementById('stay');
+  var leaveBtn=document.getElementById('leave');
 
-  let readingComplete = false;
-  let exitIntentArmed = true;
+  var done=false, armed=true;
+  var answers={};
 
-  const photoPreview = sessionStorage.getItem('benjamin_photo_preview');
-  const name = sessionStorage.getItem('benjamin_name') || '';
-  const email = sessionStorage.getItem('benjamin_email') || '';
+  var photo=sessionStorage.getItem('benjamin_photo_preview');
+  var name=sessionStorage.getItem('benjamin_name')||'';
+  var email=sessionStorage.getItem('benjamin_email')||'';
 
-  if (!photoPreview || !email) {
-    window.location.href = '/optin.html';
-    return;
+  if(!photo||!email){ window.location.href='/optin.html'; return; }
+
+  var slow=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function wait(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+
+  function toBlob(d){
+    var p=d.split(','), mime=p[0].match(/:(.*?);/)[1];
+    var b=atob(p[1]), a=new Uint8Array(b.length);
+    for(var i=0;i<b.length;i++) a[i]=b.charCodeAt(i);
+    return new Blob([a],{type:mime});
   }
 
-  function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
-
-  function dataURLtoBlob(dataURL){
-    const parts = dataURL.split(',');
-    const mime = parts[0].match(/:(.*?);/)[1];
-    const binary = atob(parts[1]);
-    const array = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
-    return new Blob([array], { type: mime });
-  }
-
-  async function fetchReading(){
-    const formData = new FormData();
-    formData.append('photo', dataURLtoBlob(photoPreview), 'palm.jpg');
-    formData.append('name', name);
-
-    const res = await fetch('/api/benjamin-reading', { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (data.rateLimited) {
-      throw { type: 'rateLimited', message: data.message };
-    }
-    if (data.rejected) {
-      throw { type: 'rejected', message: data.message };
-    }
-    if (data.error || !data.reading) {
-      throw { type: 'error', message: data.message || 'Something went wrong generating your reading.' };
-    }
-    return data.reading;
-  }
-
-  function parseMarkers(text){
-    const keys = ['HEART','HEAD','LIFE','FATE','CLASH'];
-    const result = {};
-    for (let i = 0; i < keys.length; i++){
-      const key = keys[i];
-      const startTag = '###' + key + '###';
-      const startIdx = text.indexOf(startTag);
-      if (startIdx === -1) continue;
-      const contentStart = startIdx + startTag.length;
-      let endIdx = text.length;
-      for (let j = i+1; j < keys.length; j++){
-        const nextTag = '###' + keys[j] + '###';
-        const nextIdx = text.indexOf(nextTag, contentStart);
-        if (nextIdx !== -1) { endIdx = nextIdx; break; }
-      }
-      result[key] = text.slice(contentStart, endIdx).trim();
-    }
-    return result;
-  }
-
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function typeText(el, text, charsPerSecond){
-    return new Promise(resolve => {
-      if (prefersReducedMotion) {
-        el.textContent = text;
-        resolve();
-        return;
-      }
-      let i = 0;
-      const msPerChar = 1000 / charsPerSecond;
-      // Batch a few characters per tick for smoother, less jittery pacing on longer text.
-      const step = Math.max(1, Math.round(text.length / 220));
-      function tick(){
-        i += step;
-        if (i >= text.length) {
-          el.textContent = text;
-          resolve();
-          return;
-        }
-        el.textContent = text.slice(0, i);
-        el.parentElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        setTimeout(tick, msPerChar * step);
-      }
-      tick();
+  function type(el,text,cps){
+    return new Promise(function(res){
+      if(slow){ el.textContent=text; res(); return; }
+      var i=0, per=1000/cps;
+      var step=Math.max(1,Math.round(text.length/200));
+      (function tick(){
+        i+=step;
+        if(i>=text.length){ el.textContent=text; res(); return; }
+        el.textContent=text.slice(0,i);
+        setTimeout(tick,per*step);
+      })();
     });
   }
 
-  function splitIntoChunks(text, sentencesPerChunk){
-    const sentences = text.match(/[^.!?]+[.!?]+(\s+|$)/g) || [text];
-    const chunks = [];
-    for (let i = 0; i < sentences.length; i += sentencesPerChunk) {
-      chunks.push(sentences.slice(i, i + sentencesPerChunk).join('').trim());
-    }
-    return chunks.length ? chunks : [text];
+  function frame(){
+    var m=document.createElement('div');
+    m.className='msg';
+    var a=document.createElement('div');
+    a.className='avatar sm'; a.textContent='B'; a.setAttribute('aria-hidden','true');
+    var b=document.createElement('div');
+    b.className='body';
+    m.appendChild(a); m.appendChild(b);
+    log.appendChild(m);
+    return {msg:m, body:b};
   }
 
-  function waitForChoice(promptText, options){
-    return new Promise(resolve => {
-      const msg = document.createElement('div');
-      msg.className = 'msg';
-      const av = document.createElement('div');
-      av.className = 'avatar-small';
-      av.textContent = 'B';
-      msg.appendChild(av);
-      const wrap = document.createElement('div');
-      wrap.style.display = 'flex';
-      wrap.style.flexDirection = 'column';
-      wrap.style.gap = '10px';
+  function toBottom(){
+    window.scrollTo({top:document.body.scrollHeight,behavior:slow?'auto':'smooth'});
+  }
 
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble commentary';
-      const p = document.createElement('div');
-      bubble.appendChild(p);
-      wrap.appendChild(bubble);
+  async function pause(ms){
+    var f=frame();
+    var t=document.createElement('div');
+    t.className='typing';
+    t.innerHTML='<i></i><i></i><i></i>';
+    f.body.appendChild(t);
+    toBottom();
+    await wait(ms);
+    f.msg.remove();
+  }
 
-      const btnRow = document.createElement('div');
-      btnRow.className = 'choice-row';
-      options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'choice-btn';
-        btn.textContent = opt.label;
-        btn.addEventListener('click', function(){
-          Array.from(btnRow.children).forEach(b => b.disabled = true);
-          btn.classList.add('selected');
-          setTimeout(() => resolve(opt.value), 250);
+  async function say(text,opts){
+    opts=opts||{};
+    var f=frame();
+    var b=document.createElement('div');
+    b.className='bub'+(opts.aside?' aside':'')+(opts.mark?' mark':'');
+    if(opts.tag){
+      var t=document.createElement('span');
+      t.className='tag'; t.textContent=opts.tag;
+      b.appendChild(t);
+    }
+    var p=document.createElement('div');
+    b.appendChild(p);
+    f.body.appendChild(b);
+    toBottom();
+    await type(p,text,opts.aside?40:56);
+    toBottom();
+    return f;
+  }
+
+  function ask(prompt,options){
+    return new Promise(function(res){
+      var f=frame();
+      var b=document.createElement('div');
+      b.className='bub aside';
+      var p=document.createElement('div');
+      b.appendChild(p);
+      f.body.appendChild(b);
+      var row=document.createElement('div');
+      row.className='picks';
+      options.forEach(function(o){
+        var btn=document.createElement('button');
+        btn.type='button'; btn.className='pick'; btn.textContent=o.label;
+        btn.addEventListener('click',function(){
+          Array.prototype.forEach.call(row.children,function(c){ c.disabled=true; });
+          btn.classList.add('on');
+          setTimeout(function(){ res(o.value); },240);
         });
-        btnRow.appendChild(btn);
+        row.appendChild(btn);
       });
-      wrap.appendChild(btnRow);
-      msg.appendChild(wrap);
-      chatLog.appendChild(msg);
-      msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
-
-      typeText(p, promptText, 38);
+      f.body.appendChild(row);
+      toBottom();
+      type(p,prompt,40).then(toBottom);
     });
   }
-  async function appendBubble({ type, label, text, avatar, typewriter }){
-    const msg = document.createElement('div');
-    msg.className = 'msg';
-    if (avatar) {
-      const av = document.createElement('div');
-      av.className = 'avatar-small';
-      av.textContent = 'B';
-      msg.appendChild(av);
-    } else {
-      const spacer = document.createElement('div');
-      spacer.style.width = '32px';
-      spacer.style.flexShrink = '0';
-      msg.appendChild(spacer);
-    }
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble ' + type;
-    if (label) {
-      const lab = document.createElement('span');
-      lab.className = 'section-label';
-      lab.textContent = label;
-      bubble.appendChild(lab);
-    }
-    const p = document.createElement('div');
-    bubble.appendChild(p);
-    msg.appendChild(bubble);
-    chatLog.appendChild(msg);
-    msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-    if (typewriter === false) {
-      p.textContent = text;
-    } else {
-      // Commentary lines type faster (feels conversational); section readings type
-      // slightly slower (feels considered, and stays readable while still moving).
-      const speed = type === 'commentary' ? 38 : 55;
-      await typeText(p, text, speed);
-    }
-    return msg;
+  function chunk(text,n){
+    var s=text.match(/[^.!?]+[.!?]+(\s+|$)/g)||[text];
+    var out=[];
+    for(var i=0;i<s.length;i+=n) out.push(s.slice(i,i+n).join('').trim());
+    return out.length?out:[text];
   }
 
-  async function showTyping(duration){
-    const msg = document.createElement('div');
-    msg.className = 'msg';
-    const av = document.createElement('div');
-    av.className = 'avatar-small';
-    av.textContent = 'B';
-    msg.appendChild(av);
-    const ind = document.createElement('div');
-    ind.className = 'typing-indicator';
-    ind.innerHTML = '<span></span><span></span><span></span>';
-    msg.appendChild(ind);
-    chatLog.appendChild(msg);
-    msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    await wait(duration);
-    msg.remove();
+  function parse(text){
+    var keys=['HEART','HEAD','LIFE','FATE','CLASH'], r={};
+    for(var i=0;i<keys.length;i++){
+      var tag='###'+keys[i]+'###';
+      var s=text.indexOf(tag);
+      if(s===-1) continue;
+      var from=s+tag.length, to=text.length;
+      for(var j=i+1;j<keys.length;j++){
+        var nx=text.indexOf('###'+keys[j]+'###',from);
+        if(nx!==-1){ to=nx; break; }
+      }
+      r[keys[i]]=text.slice(from,to).trim();
+    }
+    return r;
   }
 
-  const checkpointAnswers = {};
+  async function getReading(){
+    var fd=new FormData();
+    fd.append('photo',toBlob(photo),'palm.jpg');
+    fd.append('name',name);
+    var res=await fetch('/api/benjamin-reading',{method:'POST',body:fd});
+    var d=await res.json();
+    if(d.rateLimited) throw {kind:'limit',msg:d.message};
+    if(d.rejected) throw {kind:'reject',msg:d.message};
+    if(d.error||!d.reading) throw {kind:'err',msg:d.message||'Something went wrong.'};
+    return d.reading;
+  }
 
-  async function revealLine({ label, text, introLine, checkpoint }){
-    await showTyping(1000);
-    await appendBubble({ type: 'commentary', text: introLine, avatar: true });
+  async function line(cfg){
+    await pause(950);
+    await say(cfg.intro,{aside:true});
+    await wait(350);
+
+    var parts=chunk(cfg.text,2);
+    for(var i=0;i<parts.length;i++){
+      await pause(820);
+      await say(parts[i], i===0?{tag:cfg.tag}:{});
+      await wait(320);
+    }
+
+    if(cfg.check){
+      await wait(280);
+      var a=await ask(cfg.check.q,cfg.check.opts);
+      answers[cfg.check.key]=a;
+      var back=cfg.check.back[a];
+      if(back){
+        await pause(820);
+        await say(back,{aside:true});
+      }
+    }
     await wait(400);
-
-    const chunks = splitIntoChunks(text, 2);
-    for (let i = 0; i < chunks.length; i++){
-      await showTyping(900);
-      await appendBubble({
-        type: 'section',
-        label: i === 0 ? label : null,
-        text: chunks[i],
-        avatar: true
-      });
-      await wait(400);
-    }
-
-    if (checkpoint) {
-      await wait(300);
-      const answer = await waitForChoice(checkpoint.prompt, checkpoint.options);
-      checkpointAnswers[checkpoint.key] = answer;
-      const ack = checkpoint.acknowledge[answer] || checkpoint.acknowledge.default;
-      if (ack) {
-        await showTyping(900);
-        await appendBubble({ type: 'commentary', text: ack, avatar: true });
-      }
-    }
-    await wait(500);
   }
 
-  async function runSequence(sections){
-    chatLog.style.display = 'block';
-    connectingScreen.style.display = 'none';
+  async function run(s){
+    log.style.display='block';
+    openScr.style.display='none';
 
-    await showTyping(1200);
-    await appendBubble({ type: 'commentary', text: 'Alright. Let me look at this properly.', avatar: true });
-    await wait(500);
+    await pause(1100);
+    await say(name? ('Alright '+name+'. Let me look at this properly.') : 'Alright. Let me look at this properly.',{aside:true});
+    await wait(450);
 
-    await revealLine({
-      label: 'HEART LINE',
-      text: sections.HEART,
-      introLine: 'Starting with the heart line.',
-      checkpoint: {
-        key: 'heart',
-        prompt: 'Does that sound closer to how you actually love, or how people assume you love?',
-        options: [
-          { label: "That's exactly it", value: 'accurate' },
-          { label: "It's more complicated than that", value: 'complicated' }
-        ],
-        acknowledge: {
-          accurate: "Good. That matters for what comes next.",
-          complicated: "Fair. Most true things are.",
-          default: "Noted."
-        }
+    await line({
+      tag:'HEART LINE', text:s.HEART,
+      intro:'Starting with the heart line.',
+      check:{
+        key:'heart',
+        q:'Is that how you actually love, or how people assume you love?',
+        opts:[{label:"That is me",value:'yes'},{label:'It is more complicated',value:'complex'}],
+        back:{yes:'Good. That matters for what comes next.',complex:'Fair. Most true things are.'}
       }
     });
 
-    await revealLine({
-      label: 'HEAD LINE',
-      text: sections.HEAD,
-      introLine: 'Now the head line. This one usually tells on people.',
-      checkpoint: {
-        key: 'head',
-        prompt: 'Do you make decisions this way on purpose, or does it just happen?',
-        options: [
-          { label: 'On purpose', value: 'deliberate' },
-          { label: 'It just happens', value: 'automatic' }
-        ],
-        acknowledge: {
-          deliberate: "That's rarer than you'd think.",
-          automatic: "Then you're probably underselling how sharp it actually is.",
-          default: "Noted."
-        }
+    await line({
+      tag:'HEAD LINE', text:s.HEAD,
+      intro:'Now the head line. This one usually tells on people.',
+      check:{
+        key:'head',
+        q:'Do you decide that way on purpose, or does it just happen?',
+        opts:[{label:'On purpose',value:'chosen'},{label:'It just happens',value:'auto'}],
+        back:{chosen:'That is rarer than you would think.',auto:'Then you are underselling how sharp it is.'}
       }
     });
 
-    await revealLine({
-      label: 'LIFE LINE',
-      text: sections.LIFE,
-      introLine: 'Give me a second with the life line.',
-      checkpoint: {
-        key: 'life',
-        prompt: 'Has this felt true for a while, or has something shifted recently?',
-        options: [
-          { label: "It's been true for a while", value: 'steady' },
-          { label: "Something's shifted recently", value: 'shifted' }
-        ],
-        acknowledge: {
-          steady: "That kind of consistency shows.",
-          shifted: "That explains something about the next part.",
-          default: "Noted."
-        }
+    await line({
+      tag:'LIFE LINE', text:s.LIFE,
+      intro:'Give me a second with the life line.',
+      check:{
+        key:'life',
+        q:'Has this been true for a while, or has something shifted lately?',
+        opts:[{label:'True for a while',value:'steady'},{label:'Something shifted',value:'shift'}],
+        back:{steady:'That kind of consistency shows.',shift:'That explains part of what comes next.'}
       }
     });
 
-    await revealLine({
-      label: 'FATE LINE',
-      text: sections.FATE,
-      introLine: "And the fate line. There's something here.",
-      checkpoint: {
-        key: 'fate',
-        prompt: 'Does that internal compass feel steady right now, or a little shaky?',
-        options: [
-          { label: 'Steady', value: 'steady' },
-          { label: 'A little shaky lately', value: 'shaky' }
-        ],
-        acknowledge: {
-          steady: "Good to know. Hold onto that.",
-          shaky: "That's worth sitting with, not fixing.",
-          default: "Noted."
-        }
+    await line({
+      tag:'FATE LINE', text:s.FATE,
+      intro:'And the fate line. There is something here.',
+      check:{
+        key:'fate',
+        q:'Does your sense of direction feel steady right now, or shaky?',
+        opts:[{label:'Steady',value:'steady'},{label:'Shaky lately',value:'shaky'}],
+        back:{steady:'Hold on to that.',shaky:'That is worth sitting with, not fixing.'}
       }
     });
 
-    await showTyping(1400);
-    await appendBubble({ type: 'clash', label: 'WHAT I NOTICED', text: sections.CLASH, avatar: true });
+    await pause(1300);
+    await say(s.CLASH,{mark:true,tag:'WHAT I NOTICED'});
     await wait(600);
 
-    try {
-      sessionStorage.setItem('benjamin_checkins', JSON.stringify(checkpointAnswers));
-    } catch(e){}
+    try{ sessionStorage.setItem('benjamin_checkins',JSON.stringify(answers)); }catch(e){}
 
-    headerStatus.textContent = 'Reading complete';
-    headerStatus.classList.remove('live');
-    readingComplete = true;
-    exitIntentArmed = false;
-    continueArea.style.display = 'block';
-    continueArea.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    hstate.textContent='Reading complete';
+    hstate.classList.remove('live');
+    done=true; armed=false;
+    end.style.display='block';
+    toBottom();
   }
 
-  function showError(type, message){
-    connectingScreen.style.display = 'none';
-    errorRegion.style.display = 'block';
-    if (type === 'rejected') {
-      errorRegion.innerHTML = '<strong>' + escapeHtml(message) + '</strong><br><br><a href="/optin.html">Try a different photo</a>';
-    } else if (type === 'rateLimited') {
-      errorRegion.textContent = message;
+  function fail(kind,msg){
+    openScr.style.display='none';
+    err.style.display='block';
+    if(kind==='reject'){
+      err.innerHTML='';
+      var s=document.createElement('strong'); s.textContent=msg;
+      err.appendChild(s);
+      err.appendChild(document.createElement('br'));
+      err.appendChild(document.createElement('br'));
+      var a=document.createElement('a'); a.href='/optin.html'; a.textContent='Try a different photo';
+      err.appendChild(a);
+    } else if(kind==='limit'){
+      err.textContent=msg;
     } else {
-      errorRegion.innerHTML = escapeHtml(message) + '<br><br><a href="/optin.html">Start over</a>';
+      err.innerHTML='';
+      err.appendChild(document.createTextNode(msg));
+      err.appendChild(document.createElement('br'));
+      err.appendChild(document.createElement('br'));
+      var a2=document.createElement('a'); a2.href='/optin.html'; a2.textContent='Start over';
+      err.appendChild(a2);
     }
   }
 
-  function escapeHtml(str){
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
+  nextBtn.addEventListener('click',function(){ window.location.href='/decision.html'; });
 
-  continueBtn.addEventListener('click', function(){
-    window.location.href = '/decision.html';
+  document.addEventListener('mouseleave',function(e){
+    if(armed&&!done&&e.clientY<=0) exit.classList.add('on');
   });
+  stayBtn.addEventListener('click',function(){ exit.classList.remove('on'); });
+  leaveBtn.addEventListener('click',function(){ window.location.href='/optin.html'; });
 
-  // Exit intent
-  document.addEventListener('mouseleave', function(e){
-    if (exitIntentArmed && !readingComplete && e.clientY <= 0) {
-      exitModal.classList.add('open');
-    }
-  });
-  exitStayBtn.addEventListener('click', function(){
-    exitModal.classList.remove('open');
-  });
-  exitLeaveBtn.addEventListener('click', function(){
-    window.location.href = '/optin.html';
-  });
-
-  // Kick off
   (async function(){
-    try {
-      await wait(1500);
-      const rawReading = await fetchReading();
-      sessionStorage.setItem('benjamin_reading', rawReading);
-      const sections = parseMarkers(rawReading);
-      if (!sections.HEART || !sections.CLASH) {
-        throw { type: 'error', message: 'The reading came back incomplete. Please try again.' };
-      }
-      await runSequence(sections);
-    } catch (err) {
-      const type = err && err.type ? err.type : 'error';
-      const message = err && err.message ? err.message : 'Something went wrong.';
-      showError(type, message);
+    try{
+      await wait(1400);
+      var raw=await getReading();
+      sessionStorage.setItem('benjamin_reading',raw);
+      var s=parse(raw);
+      if(!s.HEART||!s.CLASH) throw {kind:'err',msg:'The reading came back incomplete. Please try again.'};
+      await run(s);
+    }catch(e){
+      fail(e&&e.kind?e.kind:'err',(e&&e.msg)?e.msg:'Something went wrong.');
     }
   })();
 })();
