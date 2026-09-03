@@ -20,6 +20,8 @@
     --lamp-hi:#F0BC6C;
     --clay:#B5695A;
     --muted:#9A8F82;
+    --you:#8CA6B0;
+    --you-dim:rgba(140,166,176,0.14);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{-webkit-text-size-adjust:100%;}
@@ -79,31 +81,73 @@
   }
   @keyframes blip{0%,100%{opacity:1;}50%{opacity:.25;}}
 
+  .avatar svg{width:60%;height:60%;}
+  .avatar.you{
+    background:radial-gradient(circle at 34% 30%, #2C3B40, #1B2427 72%);
+    border-color:rgba(140,166,176,0.5);
+  }
+  .avatar.you span{
+    font-family:'Fraunces',serif;
+    color:var(--you);
+  }
+  .avatar.lg span{font-size:19px;}
+  .avatar.sm span{font-size:13px;}
+  .avatar.xl span{font-size:28px;}
+
   main{
     position:relative;z-index:1;
     max-width:680px;margin:0 auto;
     padding:26px 20px 120px;
   }
 
-  /* opening */
+  /* scanning screen */
   #open-scr{
     display:flex;flex-direction:column;align-items:center;
-    text-align:center;padding:74px 10px;
+    text-align:center;padding:44px 10px 30px;
   }
-  #open-scr .avatar{margin-bottom:20px;}
+  .scan-frame{
+    position:relative;
+    width:180px;height:180px;
+    border-radius:6px;
+    overflow:hidden;
+    border:1px solid var(--edge-lit);
+    margin-bottom:22px;
+    background:var(--card);
+  }
+  .scan-frame img{
+    width:100%;height:100%;object-fit:cover;
+    filter:saturate(.75) brightness(.82);
+  }
+  .scan-line{
+    position:absolute;left:0;right:0;top:0;
+    height:2px;
+    background:linear-gradient(90deg, transparent, var(--lamp-hi) 20%, var(--lamp-hi) 80%, transparent);
+    box-shadow:0 0 14px 3px rgba(224,162,74,0.55);
+    animation:sweep 2.6s ease-in-out infinite;
+  }
+  @keyframes sweep{
+    0%{ top:2%; opacity:.2; }
+    8%{ opacity:1; }
+    50%{ top:96%; opacity:1; }
+    58%{ opacity:.2; }
+    100%{ top:2%; opacity:.2; }
+  }
+  .scan-frame::after{
+    content:'';
+    position:absolute;inset:0;
+    background:
+      linear-gradient(rgba(224,162,74,0.05) 1px, transparent 1px) 0 0/100% 12px,
+      linear-gradient(90deg, rgba(224,162,74,0.05) 1px, transparent 1px) 0 0/12px 100%;
+    mix-blend-mode:screen;
+    pointer-events:none;
+  }
   #open-scr h2{
     font-family:'Fraunces',serif;font-weight:300;
-    font-size:23px;margin-bottom:8px;
+    font-size:19px;margin-bottom:6px;
+    min-height:26px;
   }
-  #open-scr p{color:var(--muted);font-size:14.5px;}
-  .dots{display:inline-flex;gap:4px;margin-left:3px;}
-  .dots i{
-    width:3px;height:3px;border-radius:50%;background:var(--muted);
-    animation:bob 1.3s infinite;
-  }
-  .dots i:nth-child(2){animation-delay:.16s;}
-  .dots i:nth-child(3){animation-delay:.32s;}
-  @keyframes bob{0%,60%,100%{opacity:.3;}30%{opacity:1;}}
+  #open-scr p{color:var(--muted);font-size:13.5px;}
+
 
   /* messages */
   .msg{
@@ -141,6 +185,20 @@
     margin-bottom:9px;
   }
   .bub.mark .tag{color:var(--lamp-hi);}
+
+  .msg.you{
+    flex-direction:row-reverse;
+  }
+  .msg.you .body{
+    display:flex;
+    justify-content:flex-end;
+  }
+  .bub.you{
+    background:var(--you-dim);
+    border:1px solid rgba(140,166,176,0.3);
+    border-radius:12px 3px 12px 12px;
+    color:var(--paper);
+  }
 
   .typing{
     display:flex;gap:5px;
@@ -255,7 +313,7 @@
 
 <header>
   <div class="hbar">
-    <div class="avatar lg" aria-hidden="true">B</div>
+    <div class="avatar lg" id="hdrAvatar" aria-hidden="true"></div>
     <div>
       <div class="hname">Benjamin</div>
       <div class="hstate live" id="hstate">Reading your palm</div>
@@ -265,9 +323,12 @@
 
 <main>
   <div id="open-scr">
-    <div class="avatar xl" aria-hidden="true">B</div>
-    <h2>Opening your photo<span class="dots"><i></i><i></i><i></i></span></h2>
-    <p>Give me a moment with this.</p>
+    <div class="scan-frame">
+      <img id="scanPhoto" alt="Your palm photo being read">
+      <div class="scan-line"></div>
+    </div>
+    <h2 id="scanStatus">Opening your photo</h2>
+    <p>This takes a few moments. Benjamin is looking closely.</p>
   </div>
 
   <div id="log" aria-live="polite" style="display:none;"></div>
@@ -282,7 +343,7 @@
 
 <div id="exit" role="dialog" aria-modal="true" aria-labelledby="exit-h">
   <div class="exit-card">
-    <div class="avatar xl" aria-hidden="true">B</div>
+    <div class="avatar xl" id="exitAvatar" aria-hidden="true"></div>
     <h3 id="exit-h">Your reading is still open.</h3>
     <p>What is in your lines does not change if you leave. It only goes unread. This is free, and I am already here.</p>
     <button class="stay" id="stay">Stay with my reading</button>
@@ -292,6 +353,33 @@
 
 <script>
 (function(){
+  var BENJAMIN_SVG = '<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="20" cy="15.5" r="7.2" stroke="currentColor" stroke-width="1.6"/>' +
+    '<path d="M6 34c1.4-7.4 7.2-12.5 14-12.5S38.6 26.6 40 34" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<path d="M14.5 14.5c1.6 1.4 3.6 2.1 5.5 2.1s3.9-.7 5.5-2.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".55"/>' +
+    '</svg>';
+
+  function setBenjaminIcon(el){
+    el.innerHTML = BENJAMIN_SVG;
+    el.style.color = 'var(--lamp-hi)';
+  }
+
+  function setVisitorIcon(el, name){
+    el.classList.add('you');
+    var initial = (name || '').trim().charAt(0).toUpperCase();
+    if (initial) {
+      var span = document.createElement('span');
+      span.textContent = initial;
+      el.appendChild(span);
+    } else {
+      el.innerHTML = '<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<circle cx="20" cy="15" r="6.5" stroke="currentColor" stroke-width="1.6"/>' +
+        '<path d="M7 33c1.3-6.8 6.7-11.5 13-11.5S32.7 26.2 34 33" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+        '</svg>';
+      el.style.color = 'var(--you)';
+    }
+  }
+
   var log=document.getElementById('log');
   var openScr=document.getElementById('open-scr');
   var err=document.getElementById('err');
@@ -301,6 +389,11 @@
   var exit=document.getElementById('exit');
   var stayBtn=document.getElementById('stay');
   var leaveBtn=document.getElementById('leave');
+  var scanPhoto=document.getElementById('scanPhoto');
+  var scanStatus=document.getElementById('scanStatus');
+
+  setBenjaminIcon(document.getElementById('hdrAvatar'));
+  setBenjaminIcon(document.getElementById('exitAvatar'));
 
   var done=false, armed=true;
   var answers={};
@@ -310,6 +403,23 @@
   var email=sessionStorage.getItem('benjamin_email')||'';
 
   if(!photo||!email){ window.location.href='/optin.html'; return; }
+  scanPhoto.src = photo;
+
+  var scanMessages = [
+    'Opening your photo',
+    'Locating your heart line',
+    'Reading depth and curve',
+    'Tracing the head line',
+    'Checking for breaks or branches',
+    'Following the life line',
+    'Looking at the fate line',
+    'Comparing how the lines sit together'
+  ];
+  var scanIdx = 0;
+  var scanTimer = setInterval(function(){
+    scanIdx = (scanIdx + 1) % scanMessages.length;
+    scanStatus.textContent = scanMessages[scanIdx];
+  }, 1900);
 
   var slow=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -336,11 +446,13 @@
     });
   }
 
-  function frame(){
+  function frame(side){
     var m=document.createElement('div');
-    m.className='msg';
+    m.className='msg'+(side==='you' ? ' you' : '');
     var a=document.createElement('div');
-    a.className='avatar sm'; a.textContent='B'; a.setAttribute('aria-hidden','true');
+    a.className='avatar sm';
+    a.setAttribute('aria-hidden','true');
+    if (side==='you') { setVisitorIcon(a, name); } else { setBenjaminIcon(a); }
     var b=document.createElement('div');
     b.className='body';
     m.appendChild(a); m.appendChild(b);
@@ -348,12 +460,20 @@
     return {msg:m, body:b};
   }
 
+  function readPause(text){
+    // Roughly matches unhurried reading speed (~210 wpm) so the next bubble
+    // never lands before someone could plausibly have read the last one.
+    var words = text.trim().split(/\s+/).length;
+    var ms = (words / 210) * 60000;
+    return Math.max(450, Math.min(ms, 3200));
+  }
+
   function toBottom(){
     window.scrollTo({top:document.body.scrollHeight,behavior:slow?'auto':'smooth'});
   }
 
   async function pause(ms){
-    var f=frame();
+    var f=frame('benjamin');
     var t=document.createElement('div');
     t.className='typing';
     t.innerHTML='<i></i><i></i><i></i>';
@@ -365,7 +485,7 @@
 
   async function say(text,opts){
     opts=opts||{};
-    var f=frame();
+    var f=frame('benjamin');
     var b=document.createElement('div');
     b.className='bub'+(opts.aside?' aside':'')+(opts.mark?' mark':'');
     if(opts.tag){
@@ -377,14 +497,14 @@
     b.appendChild(p);
     f.body.appendChild(b);
     toBottom();
-    await type(p,text,opts.aside?40:56);
+    await type(p,text,opts.aside?34:46);
     toBottom();
     return f;
   }
 
   function ask(prompt,options){
     return new Promise(function(res){
-      var f=frame();
+      var f=frame('benjamin');
       var b=document.createElement('div');
       b.className='bub aside';
       var p=document.createElement('div');
@@ -397,15 +517,25 @@
         btn.type='button'; btn.className='pick'; btn.textContent=o.label;
         btn.addEventListener('click',function(){
           Array.prototype.forEach.call(row.children,function(c){ c.disabled=true; });
-          btn.classList.add('on');
-          setTimeout(function(){ res(o.value); },240);
+          row.remove();
+          say2You(o.label);
+          setTimeout(function(){ res(o.value); },260);
         });
         row.appendChild(btn);
       });
       f.body.appendChild(row);
       toBottom();
-      type(p,prompt,40).then(toBottom);
+      type(p,prompt,34).then(toBottom);
     });
+  }
+
+  function say2You(text){
+    var f=frame('you');
+    var b=document.createElement('div');
+    b.className='bub you';
+    b.textContent=text;
+    f.body.appendChild(b);
+    toBottom();
   }
 
   function chunk(text,n){
@@ -444,37 +574,39 @@
   }
 
   async function line(cfg){
-    await pause(950);
+    await pause(1050);
     await say(cfg.intro,{aside:true});
-    await wait(350);
+    await wait(readPause(cfg.intro));
 
     var parts=chunk(cfg.text,2);
     for(var i=0;i<parts.length;i++){
-      await pause(820);
+      await pause(950);
       await say(parts[i], i===0?{tag:cfg.tag}:{});
-      await wait(320);
+      await wait(readPause(parts[i]));
     }
 
     if(cfg.check){
-      await wait(280);
+      await wait(400);
       var a=await ask(cfg.check.q,cfg.check.opts);
       answers[cfg.check.key]=a;
       var back=cfg.check.back[a];
       if(back){
-        await pause(820);
+        await pause(900);
         await say(back,{aside:true});
       }
     }
-    await wait(400);
+    await wait(650);
   }
 
   async function run(s){
+    clearInterval(scanTimer);
     log.style.display='block';
     openScr.style.display='none';
 
     await pause(1100);
-    await say(name? ('Alright '+name+'. Let me look at this properly.') : 'Alright. Let me look at this properly.',{aside:true});
-    await wait(450);
+    var openLine = name? ('Alright '+name+'. Let me look at this properly.') : 'Alright. Let me look at this properly.';
+    await say(openLine,{aside:true});
+    await wait(readPause(openLine));
 
     await line({
       tag:'HEART LINE', text:s.HEART,
@@ -520,9 +652,9 @@
       }
     });
 
-    await pause(1300);
+    await pause(1400);
     await say(s.CLASH,{mark:true,tag:'WHAT I NOTICED'});
-    await wait(600);
+    await wait(readPause(s.CLASH) + 400);
 
     try{ sessionStorage.setItem('benjamin_checkins',JSON.stringify(answers)); }catch(e){}
 
@@ -534,6 +666,7 @@
   }
 
   function fail(kind,msg){
+    clearInterval(scanTimer);
     openScr.style.display='none';
     err.style.display='block';
     if(kind==='reject'){
@@ -566,7 +699,6 @@
 
   (async function(){
     try{
-      await wait(1400);
       var raw=await getReading();
       sessionStorage.setItem('benjamin_reading',raw);
       var s=parse(raw);
