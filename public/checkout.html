@@ -190,6 +190,7 @@
   </div>
 </div>
 
+<script src="/js/report-gen.js"></script>
 <script>
 (function(){
   var BENJAMIN_SVG = '<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -203,6 +204,22 @@
   var params=new URLSearchParams(window.location.search);
   var bundle = params.get('bundle')==='1';
   var category = params.get('category')||sessionStorage.getItem('benjamin_category')||'';
+
+  var ALL_CATEGORIES=['career','love','life','traits'];
+  var toGenerate = bundle ? ALL_CATEGORIES : (category ? [category] : []);
+  if (window.BenjaminReports && toGenerate.length) {
+    BenjaminReports.pregenerate(toGenerate);
+  }
+
+  var reading = sessionStorage.getItem('benjamin_reading')||'';
+  var photo = sessionStorage.getItem('benjamin_photo_preview')||'';
+  var photo2 = sessionStorage.getItem('benjamin_photo2_preview')||'';
+  var name = sessionStorage.getItem('benjamin_name')||'';
+  var chosenCategory = sessionStorage.getItem('benjamin_category')||'';
+  var mcAnswer = sessionStorage.getItem('benjamin_mc_answer')||'';
+  var checkinsRaw = sessionStorage.getItem('benjamin_checkins');
+  var checkins = {};
+  try{ checkins = checkinsRaw?JSON.parse(checkinsRaw):{}; }catch(e){}
 
   var LABELS={ career:'Career and Finances', love:'Love and Relationships', life:'Life Path and Timing', traits:'Inherent Traits and Potential' };
   var label = LABELS[category] || 'Your reading';
@@ -242,6 +259,34 @@
     else { cardExp.value=digits; }
   });
 
+  function toBlob(dataUrl){
+    var p=dataUrl.split(','), mime=p[0].match(/:(.*?);/)[1];
+    var bin=atob(p[1]), arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    return new Blob([arr],{type:mime});
+  }
+
+  async function prefetchReport(cat){
+    if(cat==='traits' && !photo2) return null; // needs a second photo we don't have yet, report.html will handle it
+    if(!photo) return null;
+    try{
+      var fd=new FormData();
+      fd.append('photo', toBlob(photo), 'palm.jpg');
+      if(cat==='traits'){ fd.append('photo2', toBlob(photo2), 'palm2.jpg'); }
+      fd.append('category', cat);
+      fd.append('reading', reading);
+      fd.append('checkins', JSON.stringify(checkins));
+      fd.append('mcAnswer', cat===chosenCategory ? mcAnswer : '');
+      fd.append('name', name);
+      var res=await fetch('/api/benjamin-report',{method:'POST', body:fd});
+      var d=await res.json();
+      if(d.error || !d.report) return null;
+      return d.report;
+    }catch(e){
+      return null;
+    }
+  }
+
   form.addEventListener('submit',function(e){
     e.preventDefault();
     err.style.display='none';
@@ -249,8 +294,30 @@
     formWrap.style.display='none';
     processing.style.display='block';
 
-    setTimeout(function(){
-      var owned={ categories: bundle ? ['career','love','life','traits'] : [category], bundle: bundle };
+    var procLabel=document.getElementById('procLabel');
+    var procMsgs=['Confirming your payment','Benjamin is starting on your reading','Writing something specific to you'];
+    var procIdx=0;
+    var procTimer=setInterval(function(){
+      procIdx=(procIdx+1)%procMsgs.length;
+      procLabel.textContent=procMsgs[procIdx];
+    }, 1500);
+
+    var categories = bundle ? ['career','love','life','traits'] : [category];
+    var minDelay = new Promise(function(r){ setTimeout(r, 1600); });
+    var prefetch = Promise.all(categories.map(function(c){
+      return prefetchReport(c).then(function(raw){ return { cat:c, raw:raw }; });
+    }));
+
+    Promise.all([minDelay, prefetch]).then(function(results){
+      clearInterval(procTimer);
+      var fetched = results[1];
+      var cache = {};
+      fetched.forEach(function(item){
+        if(item.raw) cache[item.cat] = item.raw;
+      });
+      try{ sessionStorage.setItem('benjamin_report_cache', JSON.stringify(cache)); }catch(x){}
+
+      var owned={ categories: categories, bundle: bundle };
       try{ sessionStorage.setItem('benjamin_owned', JSON.stringify(owned)); }catch(x){}
 
       processing.style.display='none';
@@ -258,8 +325,8 @@
 
       setTimeout(function(){
         window.location.href='/report.html';
-      }, 1100);
-    }, 1900);
+      }, 900);
+    });
   });
 })();
 </script>
