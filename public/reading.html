@@ -143,16 +143,10 @@
   }
   .photo-card{
     display:none;
-    max-width:420px;
+    max-width:220px;
     margin:0 auto 26px;
   }
-  .photo-card .panels{
-    display:flex;
-    gap:14px;
-    align-items:flex-start;
-  }
   .photo-card .real{
-    flex:1;
     border-radius:6px;
     overflow:hidden;
     border:1px solid var(--edge-lit);
@@ -162,34 +156,12 @@
     width:100%;height:auto;display:block;
     filter:saturate(.82) brightness(.88);
   }
-  .photo-card .diagram{
-    flex:1;
-    border-radius:6px;
-    border:1px solid var(--edge);
-    background:var(--card);
-    display:flex;align-items:center;justify-content:center;
-    padding:10px;
-  }
-  .photo-card .diagram svg{ width:100%; height:auto; }
-  .diagram .outline{
-    fill:rgba(237,230,218,0.02);
-    stroke:rgba(237,230,218,0.18);
-    stroke-width:1.3;
-  }
-  .diagram .trace-line{
-    fill:none;
-    stroke-width:2.4;
-    stroke-linecap:round;
-  }
   .photo-card .cap{
-    display:flex;
-    justify-content:space-between;
     text-align:center;
-    font-size:11px;
+    font-size:11.5px;
     color:var(--muted);
     margin-top:9px;
   }
-  .photo-card .cap span{flex:1;}
 
   #open-scr h2{
     font-family:'Fraunces',serif;font-weight:300;
@@ -384,21 +356,10 @@
   </div>
 
   <div class="photo-card" id="photoCard">
-    <div class="panels">
-      <div class="real">
-        <img id="logPhoto" alt="Your palm photo">
-      </div>
-      <div class="diagram">
-        <svg viewBox="0 0 260 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a palm showing the heart, head, life and fate lines">
-          <path class="outline" d="M74 300 C56 268 44 232 42 196 C40 168 44 150 52 142 C60 134 70 137 74 148 L84 178 L84 96 C84 84 92 76 102 76 C112 76 120 84 120 96 L120 166 L120 74 C120 62 128 54 138 54 C148 54 156 62 156 74 L156 166 L156 86 C156 74 164 66 174 66 C184 66 192 74 192 86 L192 172 L192 116 C192 105 199 98 208 98 C217 98 224 105 224 116 L224 196 C224 234 214 270 196 300 Z"/>
-          <path class="trace-line" id="d-heart" d="M62 176 C92 160 128 156 158 162 C176 166 190 174 200 184" stroke="#E0A24A"/>
-          <path class="trace-line" id="d-head"  d="M60 198 C90 190 126 190 154 198 C172 203 186 210 196 218" stroke="#F0BC6C"/>
-          <path class="trace-line" id="d-life"  d="M68 182 C74 208 84 236 100 258 C112 274 126 288 140 298" stroke="#B5695A"/>
-          <path class="trace-line" id="d-fate"  d="M148 296 C144 264 142 236 144 208 C145 194 147 184 150 176" stroke="#9C8FA8"/>
-        </svg>
-      </div>
+    <div class="real">
+      <img id="logPhoto" alt="Your palm photo">
     </div>
-    <div class="cap"><span>Your photo</span><span>What Benjamin is describing</span></div>
+    <div class="cap">The palm Benjamin is reading</div>
   </div>
 
   <div id="log" aria-live="polite" style="display:none;"></div>
@@ -631,24 +592,6 @@
     return r;
   }
 
-  var DRAWN={};
-  function drawDiagramLine(key){
-    if(DRAWN[key]) return;
-    DRAWN[key]=true;
-    var path=document.getElementById('d-'+key);
-    if(!path) return;
-    if(slow){ path.style.strokeDasharray='none'; path.style.strokeDashoffset='0'; return; }
-    try{
-      var len=path.getTotalLength();
-      path.style.strokeDasharray=len;
-      path.style.strokeDashoffset=len;
-      path.style.transition='stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1)';
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){ path.style.strokeDashoffset='0'; });
-      });
-    }catch(e){}
-  }
-
   async function getReading(){
     var fd=new FormData();
     fd.append('photo',toBlob(photo),'palm.jpg');
@@ -665,10 +608,6 @@
     await pause(1050);
     await say(cfg.intro,{aside:true});
     await wait(readPause(cfg.intro));
-
-    if(cfg.coordKey){
-      drawDiagramLine(cfg.coordKey.toLowerCase());
-    }
 
     var parts=chunk(cfg.text,2);
     for(var i=0;i<parts.length;i++){
@@ -710,7 +649,6 @@
     await line({
       tag:'HEART LINE', text:s.HEART,
       intro:'Starting with the heart line.',
-      coordKey:'HEART',
       check:{
         key:'heart',
         q:'Is that how you actually love, or how people assume you love?',
@@ -722,7 +660,6 @@
     await line({
       tag:'HEAD LINE', text:s.HEAD,
       intro:'Now the head line. This one usually tells on people.',
-      coordKey:'HEAD',
       check:{
         key:'head',
         q:'Do you decide that way on purpose, or does it just happen?',
@@ -734,7 +671,6 @@
     await line({
       tag:'LIFE LINE', text:s.LIFE,
       intro:'Give me a second with the life line.',
-      coordKey:'LIFE',
       check:{
         key:'life',
         q:'Has this been true for a while, or has something shifted lately?',
@@ -746,7 +682,6 @@
     await line({
       tag:'FATE LINE', text:s.FATE,
       intro:'And the fate line. There is something here.',
-      coordKey:'FATE',
       check:{
         key:'fate',
         q:'Does your sense of direction feel steady right now, or shaky?',
