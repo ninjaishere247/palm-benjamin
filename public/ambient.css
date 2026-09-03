@@ -1,0 +1,80 @@
+/* Shared ambient background system.
+   Included on every page so the "warm room, lamp lit" feeling is never
+   accidentally missing on any one page again. Previously this was
+   duplicated inside each page's own <style> block, which is exactly how
+   checkout.html and report.html silently ended up without it. */
+
+body::before{
+  content:'';
+  position:fixed;
+  top:-30vh; left:-20vw;
+  width:90vw; height:90vh;
+  max-width:1100px; max-height:1100px;
+  background:radial-gradient(circle at 50% 50%, rgba(224,162,74,0.16), rgba(224,162,74,0.05) 42%, transparent 68%);
+  pointer-events:none;
+  z-index:0;
+  animation:ambientBreatheA 11s ease-in-out infinite;
+}
+body::after{
+  content:'';
+  position:fixed;
+  bottom:-35vh; right:-25vw;
+  width:80vw; height:85vh;
+  max-width:980px; max-height:980px;
+  background:radial-gradient(circle at 50% 50%, rgba(181,105,90,0.09), rgba(181,105,90,0.03) 45%, transparent 70%);
+  pointer-events:none;
+  z-index:0;
+  animation:ambientBreatheB 14s ease-in-out infinite 2s;
+}
+@keyframes ambientBreatheA{
+  0%,100%{opacity:.85; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.05);}
+}
+@keyframes ambientBreatheB{
+  0%,100%{opacity:.8; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.06);}
+}
+
+#ambientEmbers{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  overflow:hidden;
+}
+.ember{
+  position:absolute;
+  bottom:-6px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(240,188,108,0.9), rgba(224,162,74,0.15) 70%, transparent 100%);
+  animation-name:emberRise;
+  animation-timing-function:linear;
+  animation-iteration-count:infinite;
+  will-change:transform, opacity;
+}
+@keyframes emberRise{
+  0%{
+    transform:translate(0, 0);
+    opacity:0;
+  }
+  8%{
+    opacity:var(--ember-op, 0.55);
+  }
+  85%{
+    opacity:var(--ember-op, 0.55);
+  }
+  100%{
+    transform:translate(var(--ember-drift, 20px), -108vh);
+    opacity:0;
+  }
+}
+
+/* Ensure page content always sits above the ambient layer. Pages should
+   already give their main content wrapper position:relative and z-index:1,
+   this is just a safety net for anything that doesn't. */
+body{ position:relative; }
+
+@media (prefers-reduced-motion: reduce){
+  body::before, body::after{ animation:none; }
+  #ambientEmbers{ display:none; }
+}
