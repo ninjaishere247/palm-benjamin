@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your full reading | Sage of Signs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#14110F;
+    --ink-2:#1C1815;
+    --card:#221D19;
+    --edge:rgba(237,230,218,0.10);
+    --edge-lit:rgba(224,162,74,0.45);
+    --paper:#EDE6DA;
+    --paper-dim:rgba(237,230,218,0.62);
+    --lamp:#E0A24A;
+    --lamp-hi:#F0BC6C;
+    --muted:#9A8F82;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--ink);color:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.68;min-height:100vh;
+  }
+  .shell{max-width:660px;margin:0 auto;padding:0 22px 80px;}
+  header{padding:24px 0;font-family:'Fraunces',serif;font-size:15px;color:var(--paper-dim);}
+
+  #load{text-align:center;padding:90px 10px;}
+  #load h2{font-family:'Fraunces',serif;font-weight:300;font-size:20px;margin-bottom:10px;}
+  #load p{color:var(--muted);font-size:14px;margin-bottom:20px;}
+  .prog{display:flex;justify-content:center;gap:8px;}
+  .prog i{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--edge);
+  }
+  .prog i.done{background:var(--lamp);}
+  .prog i.now{background:var(--lamp-hi);animation:pulse 1.2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  #photoAsk{display:none;text-align:center;padding:60px 10px;}
+  #photoAsk h2{font-family:'Fraunces',serif;font-weight:300;font-size:19px;margin-bottom:10px;}
+  #photoAsk p{color:var(--paper-dim);font-size:14px;margin-bottom:20px;}
+  .drop{
+    border:1px dashed var(--edge);border-radius:3px;padding:28px 20px;
+    text-align:center;cursor:pointer;max-width:340px;margin:0 auto;
+  }
+  .drop:hover{border-color:var(--edge-lit);background:rgba(224,162,74,.05);}
+  input[type=file]{display:none;}
+  .go2{
+    display:none;margin:16px auto 0;
+    background:var(--lamp);color:#191410;border:none;border-radius:2px;
+    padding:14px 28px;font:inherit;font-weight:600;cursor:pointer;min-height:46px;
+  }
+
+  #content{display:none;}
+
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 8px;}
+  .tab{
+    background:transparent;border:1px solid var(--edge);border-radius:20px;
+    color:var(--paper-dim);padding:9px 16px;font:inherit;font-size:13.5px;
+    cursor:pointer;
+  }
+  .tab.on{background:var(--lamp);border-color:var(--lamp);color:#191410;font-weight:600;}
+
+  .report{display:none;}
+  .report.on{display:block;}
+  .report h1{
+    font-family:'Fraunces',serif;font-weight:300;font-size:clamp(24px,4vw,30px);
+    padding:20px 0 24px;
+  }
+  .sec{padding:22px 0;border-top:1px solid var(--edge);}
+  .sec:last-child{padding-bottom:0;}
+  .sec .n{
+    font-family:'Fraunces',serif;font-size:11.5px;letter-spacing:.08em;
+    color:var(--lamp);display:block;margin-bottom:9px;
+  }
+  .sec h3{font-family:'Fraunces',serif;font-weight:400;font-size:19px;margin-bottom:10px;}
+  .sec p{font-size:15px;color:var(--paper-dim);white-space:pre-line;}
+
+  .actions{
+    display:flex;gap:12px;flex-wrap:wrap;
+    margin-top:36px;padding-top:26px;border-top:1px solid var(--edge);
+  }
+  .btn{
+    flex:1;min-width:180px;
+    text-align:center;border:none;border-radius:2px;padding:15px;
+    font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;min-height:46px;
+    text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+  }
+  .btn.primary{background:var(--lamp);color:#191410;}
+  .btn.primary:hover{background:var(--lamp-hi);}
+  .btn.ghost{background:transparent;border:1px solid var(--edge);color:var(--paper);}
+  .btn.ghost:hover{border-color:var(--edge-lit);}
+
+  .upsell{
+    margin-top:40px;padding-top:30px;border-top:1px solid var(--edge);
+  }
+  .upsell h3{font-family:'Fraunces',serif;font-weight:400;font-size:19px;margin-bottom:16px;}
+  .up-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .up-card{
+    background:var(--card);border:1px solid var(--edge);border-radius:3px;
+    padding:15px 16px;text-decoration:none;color:var(--paper);
+    display:block;
+  }
+  .up-card:hover{border-color:var(--edge-lit);}
+  .up-card h4{font-family:'Fraunces',serif;font-weight:400;font-size:15.5px;margin-bottom:5px;}
+  .up-card p{font-size:12.5px;color:var(--muted);}
+
+  #err{
+    display:none;border:1px solid rgba(181,105,90,.45);background:rgba(181,105,90,.10);
+    border-radius:2px;padding:16px 18px;font-size:14.5px;margin:24px 0;
+  }
+  #err a{color:var(--lamp);}
+
+  @media (max-width:520px){
+    .up-grid{grid-template-columns:1fr;}
+    .actions{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <header>Sage of Signs</header>
+
+  <div id="load">
+    <h2>Preparing your reading</h2>
+    <p id="loadSub">This can take a little while, Benjamin is writing this specifically for you.</p>
+    <div class="prog" id="prog"></div>
+  </div>
+
+  <div id="photoAsk">
+    <h2>One more photo</h2>
+    <p>Your Inherent Traits reading needs your other hand, the one you do not lead with.</p>
+    <div class="drop" id="drop2">
+      <div>Add a photo of your other palm</div>
+    </div>
+    <input type="file" id="file2" accept="image/*">
+    <button type="button" class="go2" id="go2Btn">Continue</button>
+  </div>
+
+  <div id="content">
+    <div class="tabs" id="tabs"></div>
+    <div id="reports"></div>
+
+    <div class="actions">
+      <button type="button" class="btn primary" id="pdfBtn">Download as PDF</button>
+      <a class="btn ghost" href="/decision.html">Read another area</a>
+    </div>
+
+    <div class="upsell" id="upsell" style="display:none;">
+      <h3>You have only unlocked part of this.</h3>
+      <div class="up-grid" id="upGrid"></div>
+    </div>
+  </div>
+
+  <div id="err" role="alert"></div>
+</div>
+
+<script>
+(function(){
+  var LABELS={ career:'Career and Finances', love:'Love and Relationships', life:'Life Path and Timing', traits:'Inherent Traits and Potential' };
+  var TEASERS={
+    career:'What work was actually meant to fit you.',
+    love:'What your heart line says about lasting connection.',
+    life:'What chapter you are actually in right now.',
+    traits:'What both hands reveal about strengths you underuse.'
+  };
+  var SECTION_NAMES=['PATTERN','ORIGIN','TENSION','COST','OPENING','PHASE','WATCH'];
+  var SECTION_TITLES={
+    PATTERN:'The Pattern', ORIGIN:'The Origin', TENSION:'The Tension',
+    COST:'The Cost', OPENING:'The Opening', PHASE:'The Phase', WATCH:'What to Watch'
+  };
+
+  var name=sessionStorage.getItem('benjamin_name')||'';
+  var reading=sessionStorage.getItem('benjamin_reading')||'';
+  var photo=sessionStorage.getItem('benjamin_photo_preview')||'';
+  var photo2=sessionStorage.getItem('benjamin_photo2_preview')||'';
+  var checkinsRaw=sessionStorage.getItem('benjamin_checkins');
+  var checkins={};
+  try{ checkins=checkinsRaw?JSON.parse(checkinsRaw):{}; }catch(e){}
+  var chosenCategory=sessionStorage.getItem('benjamin_category')||'';
+  var mcAnswer=sessionStorage.getItem('benjamin_mc_answer')||'';
+
+  var ownedRaw=sessionStorage.getItem('benjamin_owned');
+  var owned=null;
+  try{ owned=ownedRaw?JSON.parse(ownedRaw):null; }catch(e){}
+
+  if(!owned || !owned.categories || !owned.categories.length || !reading || !photo){
+    window.location.href='/optin.html';
+    return;
+  }
+
+  var load=document.getElementById('load');
+  var loadSub=document.getElementById('loadSub');
+  var prog=document.getElementById('prog');
+  var photoAsk=document.getElementById('photoAsk');
+  var content=document.getElementById('content');
+  var err=document.getElementById('err');
+  var tabsEl=document.getElementById('tabs');
+  var reportsEl=document.getElementById('reports');
+  var upsell=document.getElementById('upsell');
+  var upGrid=document.getElementById('upGrid');
+
+  owned.categories.forEach(function(){
+    var i=document.createElement('i');
+    prog.appendChild(i);
+  });
+
+  function setProg(idx, state){
+    var dots=prog.children;
+    if(dots[idx]) dots[idx].className = state;
+  }
+
+  function toBlob(dataUrl){
+    var p=dataUrl.split(','), mime=p[0].match(/:(.*?);/)[1];
+    var bin=atob(p[1]), arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    return new Blob([arr],{type:mime});
+  }
+
+  function parseReport(text){
+    var r={};
+    for(var i=0;i<SECTION_NAMES.length;i++){
+      var key=SECTION_NAMES[i];
+      var tag='###'+key+'###';
+      var s=text.indexOf(tag);
+      if(s===-1) continue;
+      var from=s+tag.length, to=text.length;
+      for(var j=i+1;j<SECTION_NAMES.length;j++){
+        var nx=text.indexOf('###'+SECTION_NAMES[j]+'###',from);
+        if(nx!==-1){ to=nx; break; }
+      }
+      r[key]=text.slice(from,to).trim();
+    }
+    return r;
+  }
+
+  async function fetchReport(category, idx){
+    var fd=new FormData();
+    fd.append('photo', toBlob(photo), 'palm.jpg');
+    if(category==='traits'){ fd.append('photo2', toBlob(photo2), 'palm2.jpg'); }
+    fd.append('category', category);
+    fd.append('reading', reading);
+    fd.append('checkins', JSON.stringify(checkins));
+    fd.append('mcAnswer', category===chosenCategory ? mcAnswer : '');
+    fd.append('name', name);
+
+    var res=await fetch('/api/benjamin-report',{method:'POST', body:fd});
+    var d=await res.json();
+    if(d.rateLimited) throw d.message;
+    if(d.error || !d.report) throw (d.message||'Something went wrong writing this report.');
+    return parseReport(d.report);
+  }
+
+  function renderReport(category, sections){
+    var wrap=document.createElement('div');
+    wrap.className='report';
+    wrap.id='rep-'+category;
+    var h=document.createElement('h1');
+    h.textContent=LABELS[category];
+    wrap.appendChild(h);
+    SECTION_NAMES.forEach(function(key, i){
+      if(!sections[key]) return;
+      var sec=document.createElement('div');
+      sec.className='sec';
+      var n=document.createElement('span'); n.className='n'; n.textContent=String(i+1).padStart(2,'0');
+      var t=document.createElement('h3'); t.textContent=SECTION_TITLES[key];
+      var p=document.createElement('p'); p.textContent=sections[key];
+      sec.appendChild(n); sec.appendChild(t); sec.appendChild(p);
+      wrap.appendChild(sec);
+    });
+    reportsEl.appendChild(wrap);
+  }
+
+  function showTab(category){
+    Array.prototype.forEach.call(document.querySelectorAll('.report'), function(r){ r.classList.remove('on'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(t){ t.classList.remove('on'); });
+    var rep=document.getElementById('rep-'+category);
+    if(rep) rep.classList.add('on');
+    var tab=document.querySelector('.tab[data-cat="'+category+'"]');
+    if(tab) tab.classList.add('on');
+  }
+
+  function buildTabs(cats){
+    if(cats.length<2){ tabsEl.style.display='none'; return; }
+    cats.forEach(function(c){
+      var b=document.createElement('button');
+      b.type='button'; b.className='tab'; b.textContent=LABELS[c];
+      b.dataset.cat=c;
+      b.addEventListener('click',function(){ showTab(c); });
+      tabsEl.appendChild(b);
+    });
+  }
+
+  function buildUpsell(cats){
+    var missing=Object.keys(LABELS).filter(function(k){ return cats.indexOf(k)===-1; });
+    if(!missing.length) return;
+    upsell.style.display='block';
+    missing.forEach(function(k){
+      var a=document.createElement('a');
+      a.className='up-card'; a.href='/decision.html';
+      a.innerHTML='<h4>'+LABELS[k]+'</h4><p>'+TEASERS[k]+'</p>';
+      upGrid.appendChild(a);
+    });
+  }
+
+  function buildPdf(cats, reportData){
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ unit:'pt', format:'letter' });
+    var margin=56, width=doc.internal.pageSize.getWidth()-margin*2;
+    var y=margin;
+
+    function newPageIfNeeded(need){
+      if(y+need > doc.internal.pageSize.getHeight()-margin){ doc.addPage(); y=margin; }
+    }
+
+    cats.forEach(function(cat, ci){
+      if(ci>0){ doc.addPage(); y=margin; }
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(20);
+      doc.text('Sage of Signs', margin, y); y+=30;
+      doc.setFontSize(15);
+      doc.text(LABELS[cat], margin, y); y+=28;
+
+      SECTION_NAMES.forEach(function(key,i){
+        var sec=reportData[cat][key];
+        if(!sec) return;
+        newPageIfNeeded(60);
+        doc.setFontSize(12);
+        doc.setTextColor(180,120,40);
+        doc.text(String(i+1).padStart(2,'0')+'  '+SECTION_TITLES[key], margin, y);
+        y+=18;
+        doc.setTextColor(40,35,30);
+        doc.setFontSize(11);
+        var lines=doc.splitTextToSize(sec, width);
+        lines.forEach(function(line){
+          newPageIfNeeded(16);
+          doc.text(line, margin, y);
+          y+=15;
+        });
+        y+=14;
+      });
+    });
+
+    var missing=Object.keys(LABELS).filter(function(k){ return cats.indexOf(k)===-1; });
+    if(missing.length){
+      doc.addPage(); y=margin;
+      doc.setFontSize(15);
+      doc.setTextColor(40,35,30);
+      doc.text('There is more in your hand.', margin, y); y+=26;
+      doc.setFontSize(11);
+      missing.forEach(function(k){
+        newPageIfNeeded(40);
+        doc.setTextColor(180,120,40);
+        doc.text(LABELS[k], margin, y); y+=15;
+        doc.setTextColor(90,80,70);
+        var l=doc.splitTextToSize(TEASERS[k], width);
+        l.forEach(function(line){ doc.text(line, margin, y); y+=14; });
+        y+=10;
+      });
+      doc.setTextColor(140,130,120);
+      doc.setFontSize(10);
+      newPageIfNeeded(30);
+      doc.text('Read the rest at palm-benjamin.pages.dev', margin, y);
+    }
+
+    doc.save('sage-of-signs-reading.pdf');
+  }
+
+  var reportData={};
+
+  async function ensureTraitsPhoto(){
+    if(owned.categories.indexOf('traits')===-1) return true;
+    if(photo2) return true;
+
+    load.style.display='none';
+    photoAsk.style.display='block';
+
+    return new Promise(function(resolve){
+      var drop=document.getElementById('drop2');
+      var input=document.getElementById('file2');
+      var goBtn=document.getElementById('go2Btn');
+      drop.addEventListener('click',function(){ input.click(); });
+      input.addEventListener('change',function(){
+        var f=input.files[0];
+        if(!f) return;
+        var r=new FileReader();
+        r.onload=function(e){
+          photo2=e.target.result;
+          try{ sessionStorage.setItem('benjamin_photo2_preview', photo2); }catch(x){}
+          drop.textContent='Got it: '+f.name;
+          goBtn.style.display='inline-block';
+        };
+        r.readAsDataURL(f);
+      });
+      goBtn.addEventListener('click',function(){
+        photoAsk.style.display='none';
+        load.style.display='block';
+        resolve(true);
+      });
+    });
+  }
+
+  (async function(){
+    try{
+      await ensureTraitsPhoto();
+
+      for(var i=0;i<owned.categories.length;i++){
+        setProg(i,'now');
+        var cat=owned.categories[i];
+        loadSub.textContent = owned.categories.length>1
+          ? ('Writing '+LABELS[cat]+' ('+(i+1)+' of '+owned.categories.length+')')
+          : 'This can take a little while, Benjamin is writing this specifically for you.';
+        var sections = await fetchReport(cat, i);
+        reportData[cat]=sections;
+        renderReport(cat, sections);
+        setProg(i,'done');
+      }
+
+      buildTabs(owned.categories);
+      showTab(owned.categories[0]);
+      buildUpsell(owned.categories);
+
+      document.getElementById('pdfBtn').addEventListener('click',function(){
+        buildPdf(owned.categories, reportData);
+      });
+
+      load.style.display='none';
+      content.style.display='block';
+
+    }catch(e){
+      load.style.display='none';
+      photoAsk.style.display='none';
+      err.style.display='block';
+      err.innerHTML='';
+      err.appendChild(document.createTextNode(typeof e==='string'?e:'Something went wrong preparing your reading.'));
+      err.appendChild(document.createElement('br'));
+      err.appendChild(document.createElement('br'));
+      var a=document.createElement('a'); a.href='/decision.html'; a.textContent='Go back';
+      err.appendChild(a);
+    }
+  })();
+})();
+</script>
+
+</body>
+</html>
