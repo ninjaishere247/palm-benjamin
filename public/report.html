@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report-gen.js"></script>
 <style>
   :root{
     --ink:#14110F;
@@ -73,14 +74,30 @@
     font-family:'Fraunces',serif;font-weight:300;font-size:clamp(24px,4vw,30px);
     padding:20px 0 24px;
   }
-  .sec{padding:22px 0;border-top:1px solid var(--edge);}
+  .sec{padding:24px 0;border-top:1px solid var(--edge);}
   .sec:last-child{padding-bottom:0;}
-  .sec .n{
-    font-family:'Fraunces',serif;font-size:11.5px;letter-spacing:.08em;
-    color:var(--lamp);display:block;margin-bottom:9px;
+  .sec-head{
+    display:flex;align-items:center;gap:12px;margin-bottom:12px;
   }
-  .sec h3{font-family:'Fraunces',serif;font-weight:400;font-size:19px;margin-bottom:10px;}
-  .sec p{font-size:15px;color:var(--paper-dim);white-space:pre-line;}
+  .sec-icon{
+    width:34px;height:34px;flex-shrink:0;
+    border-radius:50%;
+    border:1px solid var(--edge-lit);
+    background:rgba(224,162,74,0.06);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--lamp);
+  }
+  .sec-icon svg{width:17px;height:17px;}
+  .sec-head-text{flex:1;min-width:0;}
+  .sec .n{
+    font-family:'Fraunces',serif;font-size:10.5px;letter-spacing:.1em;
+    color:var(--muted);display:block;
+  }
+  .sec h3{font-family:'Fraunces',serif;font-weight:400;font-size:18.5px;margin-top:1px;}
+  .sec p{font-size:15px;color:var(--paper-dim);white-space:pre-line;padding-left:46px;}
+  @media (max-width:480px){
+    .sec p{padding-left:0;}
+  }
 
   .actions{
     display:flex;gap:12px;flex-wrap:wrap;
@@ -171,7 +188,7 @@
     life:'What chapter you are actually in right now.',
     traits:'What both hands reveal about strengths you underuse.'
   };
-  var SECTION_NAMES=['PATTERN','ORIGIN','TENSION','COST','OPENING','PHASE','WATCH'];
+  var SECTION_NAMES=BenjaminReports.SECTION_NAMES;
   var SECTION_TITLES={
     PATTERN:'The Pattern', ORIGIN:'The Origin', TENSION:'The Tension',
     COST:'The Cost', OPENING:'The Opening', PHASE:'The Phase', WATCH:'What to Watch'
@@ -181,11 +198,6 @@
   var reading=sessionStorage.getItem('benjamin_reading')||'';
   var photo=sessionStorage.getItem('benjamin_photo_preview')||'';
   var photo2=sessionStorage.getItem('benjamin_photo2_preview')||'';
-  var checkinsRaw=sessionStorage.getItem('benjamin_checkins');
-  var checkins={};
-  try{ checkins=checkinsRaw?JSON.parse(checkinsRaw):{}; }catch(e){}
-  var chosenCategory=sessionStorage.getItem('benjamin_category')||'';
-  var mcAnswer=sessionStorage.getItem('benjamin_mc_answer')||'';
 
   var ownedRaw=sessionStorage.getItem('benjamin_owned');
   var owned=null;
@@ -217,46 +229,21 @@
     if(dots[idx]) dots[idx].className = state;
   }
 
-  function toBlob(dataUrl){
-    var p=dataUrl.split(','), mime=p[0].match(/:(.*?);/)[1];
-    var bin=atob(p[1]), arr=new Uint8Array(bin.length);
-    for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-    return new Blob([arr],{type:mime});
-  }
-
-  function parseReport(text){
-    var r={};
-    for(var i=0;i<SECTION_NAMES.length;i++){
-      var key=SECTION_NAMES[i];
-      var tag='###'+key+'###';
-      var s=text.indexOf(tag);
-      if(s===-1) continue;
-      var from=s+tag.length, to=text.length;
-      for(var j=i+1;j<SECTION_NAMES.length;j++){
-        var nx=text.indexOf('###'+SECTION_NAMES[j]+'###',from);
-        if(nx!==-1){ to=nx; break; }
-      }
-      r[key]=text.slice(from,to).trim();
-    }
-    return r;
-  }
-
   async function fetchReport(category, idx){
-    var fd=new FormData();
-    fd.append('photo', toBlob(photo), 'palm.jpg');
-    if(category==='traits'){ fd.append('photo2', toBlob(photo2), 'palm2.jpg'); }
-    fd.append('category', category);
-    fd.append('reading', reading);
-    fd.append('checkins', JSON.stringify(checkins));
-    fd.append('mcAnswer', category===chosenCategory ? mcAnswer : '');
-    fd.append('name', name);
-
-    var res=await fetch('/api/benjamin-report',{method:'POST', body:fd});
-    var d=await res.json();
-    if(d.rateLimited) throw d.message;
-    if(d.error || !d.report) throw (d.message||'Something went wrong writing this report.');
-    return parseReport(d.report);
+    var cached = BenjaminReports.getCached(category);
+    if (cached) return cached;
+    return BenjaminReports.fetchReportSection(category);
   }
+
+  var SECTION_ICONS={
+    PATTERN:'<svg viewBox="0 0 24 24" fill="none"><circle cx="5" cy="17" r="1.6" fill="currentColor"/><circle cx="12" cy="9" r="1.6" fill="currentColor"/><circle cx="19" cy="14" r="1.6" fill="currentColor"/><path d="M5 17L12 9L19 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    ORIGIN:'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.8 2.8M16.2 16.2L19 19M19 5l-2.8 2.8M7.8 16.2L5 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>',
+    TENSION:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 12h6M14 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 8l-4 4 4 4M14 8l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    COST:'<svg viewBox="0 0 24 24" fill="none"><path d="M5 19V13M12 19V8M19 19V15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 19h16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+    OPENING:'<svg viewBox="0 0 24 24" fill="none"><path d="M7 4v16M7 4l11 3.2v9.6L7 20" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="14" cy="12" r="1.1" fill="currentColor"/></svg>',
+    PHASE:'<svg viewBox="0 0 24 24" fill="none"><path d="M14 4a8 8 0 1 0 0 16 6.5 6.5 0 0 1 0-16z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+    WATCH:'<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.4" stroke="currentColor" stroke-width="1.4"/></svg>'
+  };
 
   function renderReport(category, sections){
     var wrap=document.createElement('div');
@@ -269,10 +256,21 @@
       if(!sections[key]) return;
       var sec=document.createElement('div');
       sec.className='sec';
-      var n=document.createElement('span'); n.className='n'; n.textContent=String(i+1).padStart(2,'0');
+
+      var head=document.createElement('div');
+      head.className='sec-head';
+      var icon=document.createElement('div');
+      icon.className='sec-icon';
+      icon.innerHTML=SECTION_ICONS[key]||'';
+      var headText=document.createElement('div');
+      headText.className='sec-head-text';
+      var n=document.createElement('span'); n.className='n'; n.textContent='SECTION '+String(i+1).padStart(2,'0');
       var t=document.createElement('h3'); t.textContent=SECTION_TITLES[key];
+      headText.appendChild(n); headText.appendChild(t);
+      head.appendChild(icon); head.appendChild(headText);
+
       var p=document.createElement('p'); p.textContent=sections[key];
-      sec.appendChild(n); sec.appendChild(t); sec.appendChild(p);
+      sec.appendChild(head); sec.appendChild(p);
       wrap.appendChild(sec);
     });
     reportsEl.appendChild(wrap);
@@ -313,64 +311,184 @@
   function buildPdf(cats, reportData){
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit:'pt', format:'letter' });
-    var margin=56, width=doc.internal.pageSize.getWidth()-margin*2;
+    var pageW = doc.internal.pageSize.getWidth();
+    var pageH = doc.internal.pageSize.getHeight();
+    var margin=58, width=pageW-margin*2;
     var y=margin;
 
-    function newPageIfNeeded(need){
-      if(y+need > doc.internal.pageSize.getHeight()-margin){ doc.addPage(); y=margin; }
+    var INK=[20,17,15], INK2=[28,24,21], PAPER=[237,230,218], PAPER_DIM=[196,188,174];
+    var LAMP=[224,162,74], LAMP_HI=[240,188,108], MUTED=[154,143,130];
+
+    function fillPage(rgb){
+      doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+      doc.rect(0,0,pageW,pageH,'F');
+    }
+    function footer(pageLabel){
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+      doc.text('Sage of Signs', margin, pageH-30);
+      doc.text(pageLabel, pageW-margin, pageH-30, { align:'right' });
+    }
+    function newPageIfNeeded(need, label){
+      if(y+need > pageH-margin-20){
+        footer(label);
+        doc.addPage();
+        fillPage(INK);
+        y=margin;
+      }
     }
 
+    // ---- Cover page ----
+    fillPage(INK);
+    doc.setDrawColor(LAMP[0],LAMP[1],LAMP[2]);
+    doc.setLineWidth(1);
+    doc.rect(28,28,pageW-56,pageH-56);
+
+    doc.setFont('times','italic');
+    doc.setFontSize(13);
+    doc.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+    doc.text('Sage of Signs', pageW/2, pageH/2-96, { align:'center' });
+
+    doc.setFont('times','normal');
+    doc.setFontSize(30);
+    doc.setTextColor(PAPER[0],PAPER[1],PAPER[2]);
+    var coverTitle = cats.length>1 ? 'Your Full Reading' : LABELS[cats[0]];
+    doc.text(coverTitle, pageW/2, pageH/2-50, { align:'center' });
+
+    doc.setDrawColor(LAMP[0],LAMP[1],LAMP[2]);
+    doc.setLineWidth(0.75);
+    doc.line(pageW/2-40, pageH/2-30, pageW/2+40, pageH/2-30);
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(11);
+    doc.setTextColor(PAPER_DIM[0],PAPER_DIM[1],PAPER_DIM[2]);
+    var preparedFor = name ? ('Prepared for '+name) : 'Prepared for you';
+    doc.text(preparedFor, pageW/2, pageH/2+2, { align:'center' });
+    var dateStr = new Date().toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+    doc.setFontSize(9.5);
+    doc.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+    doc.text(dateStr, pageW/2, pageH/2+18, { align:'center' });
+
+    doc.setFont('times','italic');
+    doc.setFontSize(10.5);
+    doc.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+    doc.text('Read by Benjamin, from your own hand.', pageW/2, pageH-70, { align:'center' });
+
+    // ---- Table of contents (bundle only) ----
+    if(cats.length>1){
+      doc.addPage();
+      fillPage(INK);
+      y=margin+10;
+      doc.setFont('times','normal');
+      doc.setFontSize(19);
+      doc.setTextColor(PAPER[0],PAPER[1],PAPER[2]);
+      doc.text('What is inside', margin, y);
+      y+=34;
+      cats.forEach(function(cat, i){
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(LAMP[0],LAMP[1],LAMP[2]);
+        doc.text(String(i+1).padStart(2,'0'), margin, y);
+        doc.setFontSize(13);
+        doc.setTextColor(PAPER[0],PAPER[1],PAPER[2]);
+        doc.text(LABELS[cat], margin+28, y);
+        y+=26;
+      });
+      footer('Contents');
+    }
+
+    // ---- Report pages ----
     cats.forEach(function(cat, ci){
-      if(ci>0){ doc.addPage(); y=margin; }
+      doc.addPage();
+      fillPage(INK);
+      y=margin;
+
       doc.setFont('helvetica','normal');
-      doc.setFontSize(20);
-      doc.text('Sage of Signs', margin, y); y+=30;
-      doc.setFontSize(15);
-      doc.text(LABELS[cat], margin, y); y+=28;
+      doc.setFontSize(9.5);
+      doc.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+      doc.text('SAGE OF SIGNS', margin, y);
+      y+=26;
+
+      doc.setFont('times','normal');
+      doc.setFontSize(22);
+      doc.setTextColor(PAPER[0],PAPER[1],PAPER[2]);
+      doc.text(LABELS[cat], margin, y);
+      y+=10;
+      doc.setDrawColor(LAMP[0],LAMP[1],LAMP[2]);
+      doc.setLineWidth(0.75);
+      doc.line(margin, y+8, margin+width, y+8);
+      y+=34;
 
       SECTION_NAMES.forEach(function(key,i){
         var sec=reportData[cat][key];
         if(!sec) return;
-        newPageIfNeeded(60);
-        doc.setFontSize(12);
-        doc.setTextColor(180,120,40);
-        doc.text(String(i+1).padStart(2,'0')+'  '+SECTION_TITLES[key], margin, y);
-        y+=18;
-        doc.setTextColor(40,35,30);
-        doc.setFontSize(11);
-        var lines=doc.splitTextToSize(sec, width);
+        newPageIfNeeded(70, LABELS[cat]);
+
+        // section number badge
+        doc.setFillColor(LAMP[0],LAMP[1],LAMP[2]);
+        doc.circle(margin+8, y-4, 9, 'F');
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(9);
+        doc.setTextColor(INK[0],INK[1],INK[2]);
+        doc.text(String(i+1), margin+8, y-1, { align:'center' });
+
+        doc.setFont('times','normal');
+        doc.setFontSize(14);
+        doc.setTextColor(LAMP_HI[0],LAMP_HI[1],LAMP_HI[2]);
+        doc.text(SECTION_TITLES[key], margin+26, y);
+        y+=20;
+
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(10.5);
+        doc.setTextColor(PAPER_DIM[0],PAPER_DIM[1],PAPER_DIM[2]);
+        var lines=doc.splitTextToSize(sec, width-6);
         lines.forEach(function(line){
-          newPageIfNeeded(16);
-          doc.text(line, margin, y);
-          y+=15;
+          newPageIfNeeded(16, LABELS[cat]);
+          doc.text(line, margin+6, y);
+          y+=14.5;
         });
-        y+=14;
+        y+=18;
       });
+      footer(LABELS[cat]);
     });
 
+    // ---- Upsell closing page (non-bundle only) ----
     var missing=Object.keys(LABELS).filter(function(k){ return cats.indexOf(k)===-1; });
     if(missing.length){
-      doc.addPage(); y=margin;
-      doc.setFontSize(15);
-      doc.setTextColor(40,35,30);
-      doc.text('There is more in your hand.', margin, y); y+=26;
-      doc.setFontSize(11);
+      doc.addPage();
+      fillPage(INK);
+      y=margin+10;
+      doc.setFont('times','normal');
+      doc.setFontSize(19);
+      doc.setTextColor(PAPER[0],PAPER[1],PAPER[2]);
+      doc.text('There is more in your hand.', margin, y);
+      y+=32;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(10.5);
+      doc.setTextColor(PAPER_DIM[0],PAPER_DIM[1],PAPER_DIM[2]);
       missing.forEach(function(k){
-        newPageIfNeeded(40);
-        doc.setTextColor(180,120,40);
-        doc.text(LABELS[k], margin, y); y+=15;
-        doc.setTextColor(90,80,70);
+        newPageIfNeeded(48, 'More to read');
+        doc.setFont('times','normal');
+        doc.setFontSize(13);
+        doc.setTextColor(LAMP_HI[0],LAMP_HI[1],LAMP_HI[2]);
+        doc.text(LABELS[k], margin, y); y+=16;
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(10.5);
+        doc.setTextColor(PAPER_DIM[0],PAPER_DIM[1],PAPER_DIM[2]);
         var l=doc.splitTextToSize(TEASERS[k], width);
         l.forEach(function(line){ doc.text(line, margin, y); y+=14; });
-        y+=10;
+        y+=16;
       });
-      doc.setTextColor(140,130,120);
+      doc.setFont('times','italic');
       doc.setFontSize(10);
-      newPageIfNeeded(30);
+      doc.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+      newPageIfNeeded(30, 'More to read');
       doc.text('Read the rest at palm-benjamin.pages.dev', margin, y);
+      footer('More to read');
     }
 
-    doc.save('sage-of-signs-reading.pdf');
+    doc.save('sage-of-signs-'+(cats.length>1?'full-reading':cats[0])+'.pdf');
   }
 
   var reportData={};
@@ -411,17 +529,27 @@
     try{
       await ensureTraitsPhoto();
 
+      var cacheRaw = sessionStorage.getItem('benjamin_report_cache');
+      var cache = {};
+      try{ cache = cacheRaw ? JSON.parse(cacheRaw) : {}; }catch(e){}
+
       for(var i=0;i<owned.categories.length;i++){
         setProg(i,'now');
         var cat=owned.categories[i];
-        loadSub.textContent = owned.categories.length>1
-          ? ('Writing '+LABELS[cat]+' ('+(i+1)+' of '+owned.categories.length+')')
-          : 'This can take a little while, Benjamin is writing this specifically for you.';
-        var sections = await fetchReport(cat, i);
+        var sections;
+        if(cache[cat]){
+          sections = parseReport(cache[cat]);
+        } else {
+          loadSub.textContent = owned.categories.length>1
+            ? ('Writing '+LABELS[cat]+' ('+(i+1)+' of '+owned.categories.length+')')
+            : 'This can take a little while, Benjamin is writing this specifically for you.';
+          sections = await fetchReport(cat, i);
+        }
         reportData[cat]=sections;
         renderReport(cat, sections);
         setProg(i,'done');
       }
+      try{ sessionStorage.removeItem('benjamin_report_cache'); }catch(e){}
 
       buildTabs(owned.categories);
       showTab(owned.categories[0]);
