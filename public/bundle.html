@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All four areas | Sage of Signs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14110F;
+    --ink-2:#1C1815;
+    --card:#221D19;
+    --edge:rgba(237,230,218,0.10);
+    --edge-lit:rgba(224,162,74,0.45);
+    --paper:#EDE6DA;
+    --paper-dim:rgba(237,230,218,0.62);
+    --lamp:#E0A24A;
+    --lamp-hi:#F0BC6C;
+    --muted:#9A8F82;
+    --good:#7FAE8A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--ink);color:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.68;min-height:100vh;overflow-x:hidden;
+    animation:pageIn .5s ease;
+  }
+  @keyframes pageIn{ from{opacity:0;} to{opacity:1;} }
+  body::before{
+    content:'';position:fixed;top:-25vh;left:50%;transform:translateX(-50%);
+    width:130vw;height:80vh;max-width:1200px;
+    background:radial-gradient(ellipse at 50% 30%, rgba(224,162,74,0.12), rgba(224,162,74,0.03) 45%, transparent 70%);
+    pointer-events:none;z-index:0;
+  }
+  .shell{position:relative;z-index:1;max-width:660px;margin:0 auto;padding:0 22px 70px;}
+
+  header{padding:24px 0 0;display:flex;align-items:center;gap:11px;}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;flex-shrink:0;
+    background:radial-gradient(circle at 34% 30%, #4A3B2C, #2A231D 72%);
+    border:1px solid var(--edge-lit);
+    display:flex;align-items:center;justify-content:center;color:var(--lamp-hi);
+  }
+  .avatar svg{width:60%;height:60%;}
+  .bname{font-family:'Fraunces',serif;font-size:15px;}
+  .btag{font-size:11.5px;color:var(--muted);}
+
+  .lede{
+    font-family:'Fraunces',serif;font-weight:300;font-style:italic;
+    font-size:clamp(20px,3.4vw,25px);
+    line-height:1.45;
+    padding:34px 0 8px;
+  }
+  .sub{font-size:14.5px;color:var(--paper-dim);padding-bottom:30px;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;}
+  .item{
+    background:var(--card);border:1px solid var(--edge);border-radius:3px;
+    padding:18px 17px;position:relative;
+  }
+  .item.owned{border-color:var(--good);background:rgba(127,174,138,0.06);}
+  .item h3{font-family:'Fraunces',serif;font-weight:400;font-size:16.5px;margin-bottom:7px;}
+  .item p{font-size:13px;color:var(--paper-dim);line-height:1.55;}
+  .tag{
+    display:inline-block;font-size:10.5px;letter-spacing:.05em;
+    color:var(--good);border:1px solid rgba(127,174,138,.4);
+    border-radius:12px;padding:2px 9px;margin-top:10px;
+  }
+
+  .price-block{
+    margin-top:34px;background:var(--card);border:1px solid var(--edge-lit);
+    border-radius:3px;padding:26px 24px;
+  }
+  .compare{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:14px;color:var(--muted);margin-bottom:10px;
+  }
+  .compare .strike{text-decoration:line-through;}
+  .price-block .big{
+    font-family:'Fraunces',serif;font-size:34px;margin-bottom:16px;
+  }
+  .price-block .big span{font-size:14px;color:var(--muted);font-family:'Inter',sans-serif;}
+  .cta{
+    display:block;width:100%;
+    background:var(--lamp);color:#191410;border:none;border-radius:2px;
+    padding:16px;font-family:inherit;font-size:15.5px;font-weight:600;
+    cursor:pointer;min-height:48px;
+  }
+  .cta:hover{background:var(--lamp-hi);}
+  .alt{
+    text-align:center;font-size:13px;color:var(--muted);margin-top:16px;
+  }
+  .alt a{color:var(--lamp-hi);}
+
+  .guarantee{
+    display:flex;gap:12px;font-size:13.5px;color:var(--paper-dim);
+    padding:26px 0 10px;
+  }
+  .guarantee svg{width:20px;height:20px;flex-shrink:0;margin-top:1px;color:var(--lamp);}
+
+  #goingOver{
+    display:none;position:fixed;inset:0;z-index:50;background:var(--ink);
+    align-items:center;justify-content:center;flex-direction:column;
+  }
+  #goingOver.on{display:flex;}
+  #goingOver .avatar{width:52px;height:52px;margin-bottom:16px;}
+  #goingOver p{color:var(--paper-dim);font-size:14.5px;font-family:'Fraunces',serif;font-style:italic;}
+
+  @media (max-width:520px){
+    .grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <header>
+    <div class="avatar" id="hdrAvatar" aria-hidden="true"></div>
+    <div>
+      <div class="bname">Benjamin</div>
+      <div class="btag">All four areas</div>
+    </div>
+  </header>
+
+  <div class="lede" id="ledeText">You already felt this pulling at more than one part of your life.</div>
+  <div class="sub">Here is what each area actually covers, based on the same reading you just went through.</div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="price-block">
+    <div class="compare">
+      <span>Buying each separately</span>
+      <span class="strike">$36</span>
+    </div>
+    <div class="big">$24 <span>for all four, one time</span></div>
+    <button type="button" class="cta" id="bundleBtn">Get all four for $24</button>
+    <div class="alt">Or <a href="#" id="singleLink">just get one area for $9</a></div>
+  </div>
+
+  <div class="guarantee">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.4"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>If any part of it does not feel true to you, tell us and we will refund it. No argument.</div>
+  </div>
+</div>
+
+<div id="goingOver">
+  <div class="avatar" id="goAvatar" aria-hidden="true"></div>
+  <p id="goText">Taking you to checkout</p>
+</div>
+
+<script>
+(function(){
+  var BENJAMIN_SVG = '<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="20" cy="15.5" r="7.2" stroke="currentColor" stroke-width="1.6"/>' +
+    '<path d="M6 34c1.4-7.4 7.2-12.5 14-12.5S38.6 26.6 40 34" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<path d="M14.5 14.5c1.6 1.4 3.6 2.1 5.5 2.1s3.9-.7 5.5-2.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".55"/>' +
+    '</svg>';
+  document.querySelectorAll('.avatar').forEach(function(el){
+    el.innerHTML=BENJAMIN_SVG; el.style.color='var(--lamp-hi)';
+  });
+
+  var LABELS={ career:'Career and Finances', love:'Love and Relationships', life:'Life Path and Timing', traits:'Inherent Traits and Potential' };
+  var DESCS={
+    career:'What work was actually meant to fit you, and where your money situation is really heading.',
+    love:'What your heart line says about lasting connection, and where you may be blocking it.',
+    life:'What chapter you are actually in right now, and whether it fits who you are becoming.',
+    traits:'What both hands, dominant and not, reveal about strengths you may be underusing.'
+  };
+
+  var reading=sessionStorage.getItem('benjamin_reading')||'';
+  var category=sessionStorage.getItem('benjamin_category')||'';
+  var name=sessionStorage.getItem('benjamin_name')||'';
+
+  if(!reading){ window.location.href='/optin.html'; return; }
+
+  function lastSentence(text){
+    var m=(text||'').match(/[^.!?]+[.!?]+(\s+|$)/g);
+    if(!m||!m.length) return '';
+    return m[m.length-1].trim();
+  }
+  function parseMarkers(text){
+    var keys=['HEART','HEAD','LIFE','FATE','CLASH'], r={};
+    for(var i=0;i<keys.length;i++){
+      var tag='###'+keys[i]+'###';
+      var s=text.indexOf(tag);
+      if(s===-1) continue;
+      var from=s+tag.length, to=text.length;
+      for(var j=i+1;j<keys.length;j++){
+        var nx=text.indexOf('###'+keys[j]+'###',from);
+        if(nx!==-1){ to=nx; break; }
+      }
+      r[keys[i]]=text.slice(from,to).trim();
+    }
+    return r;
+  }
+  var clashClose = lastSentence(parseMarkers(reading).CLASH);
+  if(clashClose){
+    document.getElementById('ledeText').textContent = clashClose;
+  }
+
+  var grid=document.getElementById('grid');
+  Object.keys(LABELS).forEach(function(k){
+    var div=document.createElement('div');
+    div.className='item'+(k===category?' owned':'');
+    var h=document.createElement('h3'); h.textContent=LABELS[k];
+    var p=document.createElement('p'); p.textContent=DESCS[k];
+    div.appendChild(h); div.appendChild(p);
+    if(k===category){
+      var tag=document.createElement('span');
+      tag.className='tag'; tag.textContent='Already unlocked';
+      div.appendChild(tag);
+    }
+    grid.appendChild(div);
+  });
+
+  var goingOver=document.getElementById('goingOver');
+  var goText=document.getElementById('goText');
+  function go(url, text){
+    goText.textContent=text;
+    goingOver.classList.add('on');
+    setTimeout(function(){ window.location.href=url; }, 550);
+  }
+
+  document.getElementById('bundleBtn').addEventListener('click',function(){
+    go('/checkout.html?bundle=1', 'Taking you to checkout for all four areas');
+  });
+  document.getElementById('singleLink').addEventListener('click',function(e){
+    e.preventDefault();
+    var url = category ? ('/checkout.html?category='+encodeURIComponent(category)) : '/decision.html';
+    go(url, 'Taking you to checkout');
+  });
+})();
+</script>
+
+</body>
+</html>
