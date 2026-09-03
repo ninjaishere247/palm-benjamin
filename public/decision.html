@@ -117,6 +117,14 @@
   }
 
   .picks{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
+  .redo{
+    background:none;border:none;color:var(--muted);
+    font:inherit;font-size:12.5px;cursor:pointer;padding:6px 0;
+    text-decoration:underline;text-underline-offset:3px;
+    margin-top:8px;display:block;
+  }
+  .redo:hover{color:var(--lamp-hi);}
+
   .pick{
     background:transparent;border:1px solid var(--edge);border-radius:20px;
     color:var(--paper);padding:10px 17px;font:inherit;font-size:14.5px;
@@ -330,12 +338,22 @@
         btn.addEventListener('click',function(){
           Array.prototype.forEach.call(row.children,function(c){ c.disabled=true; });
           row.remove();
+          redo.remove();
           sayYou(o.label);
           setTimeout(function(){ res(o.value); },260);
         });
         row.appendChild(btn);
       });
       f.body.appendChild(row);
+
+      var redo=document.createElement('button');
+      redo.type='button'; redo.className='redo';
+      redo.textContent='Not the right category? Start over';
+      redo.addEventListener('click',function(){
+        window.location.href='/decision.html';
+      });
+      f.body.appendChild(redo);
+
       f.msg.scrollIntoView({behavior:'smooth',block:'end'});
     });
   }
@@ -381,9 +399,17 @@
 
       contBtn.addEventListener('click',function(){ res(); });
 
+      var redo=document.createElement('button');
+      redo.type='button'; redo.className='redo';
+      redo.textContent='Not the right category? Start over';
+      redo.addEventListener('click',function(){
+        window.location.href='/decision.html';
+      });
+
       f.body.appendChild(drop);
       f.body.appendChild(input);
       f.body.appendChild(contBtn);
+      f.body.appendChild(redo);
       f.msg.scrollIntoView({behavior:'smooth',block:'end'});
     });
   }
@@ -412,6 +438,15 @@
           buttons.forEach(function(b2){ b2.disabled=true; });
           btn.classList.add('chosen');
           sayYou(c.title);
+
+          var redo=document.createElement('button');
+          redo.type='button'; redo.className='redo';
+          redo.textContent='Picked the wrong one? Start over';
+          redo.addEventListener('click',function(){
+            window.location.href='/decision.html';
+          });
+          wrap.appendChild(redo);
+
           setTimeout(function(){ res(c.key); },280);
         });
         grid.appendChild(btn);
