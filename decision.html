@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where does this show up for you? | Sage of Signs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14110F;
+    --ink-2:#1C1815;
+    --card:#221D19;
+    --edge:rgba(237,230,218,0.10);
+    --edge-lit:rgba(224,162,74,0.45);
+    --paper:#EDE6DA;
+    --paper-dim:rgba(237,230,218,0.62);
+    --lamp:#E0A24A;
+    --lamp-hi:#F0BC6C;
+    --clay:#B5695A;
+    --muted:#9A8F82;
+    --you:#8CA6B0;
+    --you-dim:rgba(140,166,176,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.65;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';
+    position:fixed;top:-25vh;left:50%;transform:translateX(-50%);
+    width:130vw;height:80vh;max-width:1200px;
+    background:radial-gradient(ellipse at 50% 40%, rgba(224,162,74,0.13), rgba(224,162,74,0.04) 45%, transparent 70%);
+    pointer-events:none;z-index:0;
+    animation:breathe 12s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:.85;}50%{opacity:1;}}
+
+  header{
+    position:sticky;top:0;z-index:20;
+    background:rgba(20,17,15,.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--edge);
+    padding:13px 20px;
+  }
+  .hbar{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:12px;}
+  .avatar{
+    border-radius:50%;flex-shrink:0;
+    background:radial-gradient(circle at 34% 30%, #4A3B2C, #2A231D 72%);
+    border:1px solid var(--edge-lit);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;color:var(--lamp-hi);
+  }
+  .avatar svg{width:60%;height:60%;}
+  .avatar.lg{width:42px;height:42px;}
+  .avatar.sm{width:30px;height:30px;}
+  .avatar.you{
+    background:radial-gradient(circle at 34% 30%, #2C3B40, #1B2427 72%);
+    border-color:rgba(140,166,176,0.5);
+  }
+  .avatar.you span{font-family:'Fraunces',serif;color:var(--you);font-size:13px;}
+  .hname{font-family:'Fraunces',serif;font-size:16px;}
+  .hstate{font-size:12px;color:var(--muted);}
+
+  main{
+    position:relative;z-index:1;
+    max-width:680px;margin:0 auto;
+    padding:26px 20px 100px;
+  }
+
+  .msg{display:flex;gap:11px;margin-bottom:16px;opacity:0;transform:translateY(9px);animation:in .45s ease forwards;}
+  @keyframes in{to{opacity:1;transform:none;}}
+  .msg.you{flex-direction:row-reverse;}
+  .body{min-width:0;flex:1;}
+  .msg.you .body{display:flex;justify-content:flex-end;}
+  .bub{
+    background:var(--card);border:1px solid var(--edge);
+    border-radius:3px 12px 12px 12px;padding:13px 16px;
+    font-size:15.5px;width:fit-content;
+  }
+  .bub.aside{background:transparent;border:none;padding:3px 0;font-family:'Fraunces',serif;font-style:italic;color:var(--paper-dim);}
+  .bub.you{background:var(--you-dim);border:1px solid rgba(140,166,176,0.3);border-radius:12px 3px 12px 12px;}
+
+  .cards{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;
+    margin:22px 0 8px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--edge);
+    border-radius:3px;
+    padding:20px 18px;
+    text-align:left;
+    cursor:pointer;
+    font-family:inherit;color:var(--paper);
+    transition:border-color .2s, background .2s, transform .12s;
+  }
+  .card:hover:not(:disabled){border-color:var(--edge-lit);background:rgba(224,162,74,.05);}
+  .card:active:not(:disabled){transform:translateY(1px);}
+  .card:disabled{opacity:.35;cursor:default;}
+  .card.chosen{border-color:var(--lamp);background:rgba(224,162,74,.09);}
+  .card h3{
+    font-family:'Fraunces',serif;font-weight:400;font-size:18px;margin-bottom:7px;
+  }
+  .card p{font-size:13.5px;color:var(--paper-dim);line-height:1.55;}
+  .card .rec{
+    display:block;margin-top:10px;
+    font-family:'Fraunces',serif;font-style:italic;
+    font-size:12.5px;color:var(--lamp-hi);
+  }
+
+  .picks{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
+  .pick{
+    background:transparent;border:1px solid var(--edge);border-radius:20px;
+    color:var(--paper);padding:10px 17px;font:inherit;font-size:14.5px;
+    cursor:pointer;min-height:42px;
+    transition:border-color .2s, background .2s;
+  }
+  .pick:hover:not(:disabled){border-color:var(--edge-lit);background:rgba(224,162,74,.07);}
+  .pick:disabled{cursor:default;opacity:.4;}
+
+  .drop{
+    border:1px dashed var(--edge);border-radius:3px;
+    padding:26px 20px;text-align:center;cursor:pointer;
+    margin-top:14px;
+    transition:border-color .25s, background .25s;
+  }
+  .drop:hover{border-color:var(--edge-lit);background:rgba(224,162,74,.05);}
+  .drop.filled{
+    border-style:solid;border-color:var(--edge-lit);
+    padding:12px;display:flex;align-items:center;gap:12px;text-align:left;cursor:default;
+  }
+  .drop-title{font-size:14.5px;font-weight:500;}
+  .drop-sub{font-size:12.5px;color:var(--muted);margin-top:4px;}
+  .thumb{width:48px;height:48px;border-radius:3px;object-fit:cover;border:1px solid var(--edge);flex-shrink:0;}
+  input[type=file]{display:none;}
+  .cont{
+    display:none;
+    margin-top:14px;
+    background:var(--lamp);color:#191410;border:none;border-radius:2px;
+    padding:14px 26px;font:inherit;font-weight:600;font-size:15px;
+    cursor:pointer;min-height:46px;
+  }
+  .cont:hover{background:var(--lamp-hi);}
+
+  @media (max-width:560px){
+    .cards{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hbar">
+    <div class="avatar lg" id="hdrAvatar" aria-hidden="true"></div>
+    <div>
+      <div class="hname">Benjamin</div>
+      <div class="hstate">Choosing where to go deeper</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="log" aria-live="polite"></div>
+</main>
+
+<script>
+(function(){
+  var BENJAMIN_SVG = '<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="20" cy="15.5" r="7.2" stroke="currentColor" stroke-width="1.6"/>' +
+    '<path d="M6 34c1.4-7.4 7.2-12.5 14-12.5S38.6 26.6 40 34" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<path d="M14.5 14.5c1.6 1.4 3.6 2.1 5.5 2.1s3.9-.7 5.5-2.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".55"/>' +
+    '</svg>';
+
+  function setBenjaminIcon(el){ el.innerHTML=BENJAMIN_SVG; el.style.color='var(--lamp-hi)'; }
+  function setVisitorIcon(el,name){
+    el.classList.add('you');
+    var initial=(name||'').trim().charAt(0).toUpperCase();
+    if(initial){
+      var s=document.createElement('span'); s.textContent=initial; el.appendChild(s);
+    } else {
+      el.innerHTML='<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="15" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M7 33c1.3-6.8 6.7-11.5 13-11.5S32.7 26.2 34 33" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+      el.style.color='var(--you)';
+    }
+  }
+
+  var log=document.getElementById('log');
+  setBenjaminIcon(document.getElementById('hdrAvatar'));
+
+  var name=sessionStorage.getItem('benjamin_name')||'';
+  var email=sessionStorage.getItem('benjamin_email')||'';
+  var reading=sessionStorage.getItem('benjamin_reading')||'';
+  var checkinsRaw=sessionStorage.getItem('benjamin_checkins');
+  var checkins={};
+  try{ checkins=checkinsRaw?JSON.parse(checkinsRaw):{}; }catch(e){}
+
+  if(!email||!reading){ window.location.href='/optin.html'; return; }
+
+  function parseMarkers(text){
+    var keys=['HEART','HEAD','LIFE','FATE','CLASH'], r={};
+    for(var i=0;i<keys.length;i++){
+      var tag='###'+keys[i]+'###';
+      var s=text.indexOf(tag);
+      if(s===-1) continue;
+      var from=s+tag.length, to=text.length;
+      for(var j=i+1;j<keys.length;j++){
+        var nx=text.indexOf('###'+keys[j]+'###',from);
+        if(nx!==-1){ to=nx; break; }
+      }
+      r[keys[i]]=text.slice(from,to).trim();
+    }
+    return r;
+  }
+
+  function lastSentence(text){
+    var m=(text||'').match(/[^.!?]+[.!?]+(\s+|$)/g);
+    if(!m||!m.length) return text||'';
+    return m[m.length-1].trim();
+  }
+
+  var sections=parseMarkers(reading);
+  var clashClose=lastSentence(sections.CLASH);
+
+  function wait(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+
+  function frame(side){
+    var m=document.createElement('div');
+    m.className='msg'+(side==='you'?' you':'');
+    var a=document.createElement('div');
+    a.className='avatar sm'; a.setAttribute('aria-hidden','true');
+    if(side==='you'){ setVisitorIcon(a,name); } else { setBenjaminIcon(a); }
+    var b=document.createElement('div'); b.className='body';
+    m.appendChild(a); m.appendChild(b);
+    log.appendChild(m);
+    m.scrollIntoView({behavior:'smooth',block:'end'});
+    return {msg:m, body:b};
+  }
+
+  function say(text,opts){
+    opts=opts||{};
+    var f=frame('benjamin');
+    var b=document.createElement('div');
+    b.className='bub'+(opts.aside?' aside':'');
+    b.textContent=text;
+    f.body.appendChild(b);
+    f.msg.scrollIntoView({behavior:'smooth',block:'end'});
+    return f;
+  }
+
+  function sayYou(text){
+    var f=frame('you');
+    var b=document.createElement('div');
+    b.className='bub you';
+    b.textContent=text;
+    f.body.appendChild(b);
+    f.msg.scrollIntoView({behavior:'smooth',block:'end'});
+  }
+
+  // ---- light recommendation heuristic from checkpoint answers ----
+  function recommend(){
+    var score={career:0, love:0, life:0, traits:0};
+    if(checkins.heart==='complex') score.love+=2;
+    if(checkins.life==='shift') score.love+=1;
+    if(checkins.head==='auto') score.career+=2;
+    if(checkins.fate==='shaky') score.career+=1;
+    if(checkins.life==='steady') score.life+=1;
+    if(checkins.fate==='shaky') score.life+=2;
+    if(checkins.heart==='yes') score.traits+=1;
+    if(checkins.head==='chosen') score.traits+=2;
+    var best=null, bestScore=0, tie=false;
+    Object.keys(score).forEach(function(k){
+      if(score[k]>bestScore){ best=k; bestScore=score[k]; tie=false; }
+      else if(score[k]===bestScore && bestScore>0){ tie=true; }
+    });
+    return (best && !tie) ? best : null;
+  }
+  var rec=recommend();
+
+  var CATEGORIES=[
+    { key:'career', title:'Career and Finances', desc:'What work was actually meant to fit you, and where your money situation is really heading.' },
+    { key:'love', title:'Love and Relationships', desc:'What your heart line says about lasting connection, and where you may be blocking it.' },
+    { key:'life', title:'Life Path and Timing', desc:'What chapter you are actually in right now, and whether it fits who you are becoming.' },
+    { key:'traits', title:'Inherent Traits and Potential', desc:'What both hands, dominant and not, reveal about strengths you may be underusing.' }
+  ];
+
+  var MC={
+    career:{ q:'Right now, is it your work, your money, or both that feels unsettled?', opts:[{label:'Work',value:'work'},{label:'Money',value:'money'},{label:'Both',value:'both'}] },
+    love:{ q:'Are you single, in it, or somewhere in between right now?', opts:[{label:'Single',value:'single'},{label:'In a relationship',value:'relationship'},{label:"It's complicated",value:'complicated'}] },
+    life:{ q:'Does this feel like an ending, a waiting period, or a beginning?', opts:[{label:'Ending',value:'ending'},{label:'Waiting',value:'waiting'},{label:'Beginning',value:'beginning'}] },
+    traits:{ q:'Do you feel like you know your own strengths, or like something is still hidden?', opts:[{label:'I know them',value:'known'},{label:"Something's hidden",value:'hidden'},{label:'Not sure',value:'unsure'}] }
+  };
+
+  function ask(prompt,options){
+    return new Promise(function(res){
+      var f=frame('benjamin');
+      var b=document.createElement('div');
+      b.className='bub aside'; b.textContent=prompt;
+      f.body.appendChild(b);
+      var row=document.createElement('div'); row.className='picks';
+      options.forEach(function(o){
+        var btn=document.createElement('button');
+        btn.type='button'; btn.className='pick'; btn.textContent=o.label;
+        btn.addEventListener('click',function(){
+          Array.prototype.forEach.call(row.children,function(c){ c.disabled=true; });
+          row.remove();
+          sayYou(o.label);
+          setTimeout(function(){ res(o.value); },260);
+        });
+        row.appendChild(btn);
+      });
+      f.body.appendChild(row);
+      f.msg.scrollIntoView({behavior:'smooth',block:'end'});
+    });
+  }
+
+  function askPhoto(){
+    return new Promise(function(res){
+      var f=frame('benjamin');
+      var b=document.createElement('div');
+      b.className='bub aside';
+      b.textContent='This one needs your other hand too. The one you do not lead with.';
+      f.body.appendChild(b);
+
+      var drop=document.createElement('div');
+      drop.className='drop'; drop.tabIndex=0;
+      drop.innerHTML='<div class="drop-title">Add a photo of your other palm</div><div class="drop-sub">Same as before, good light, palm open</div>';
+      var input=document.createElement('input');
+      input.type='file'; input.accept='image/*';
+      var contBtn=document.createElement('button');
+      contBtn.type='button'; contBtn.className='cont'; contBtn.textContent='Continue';
+
+      function openPicker(){ input.click(); }
+      drop.addEventListener('click',openPicker);
+      drop.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openPicker(); } });
+
+      input.addEventListener('change',function(){
+        var file=input.files[0];
+        if(!file) return;
+        var r=new FileReader();
+        r.onload=function(e){
+          try{ sessionStorage.setItem('benjamin_photo2_preview', e.target.result); }catch(x){}
+          drop.classList.add('filled');
+          drop.innerHTML='';
+          var img=document.createElement('img');
+          img.className='thumb'; img.src=e.target.result; img.alt='Your other palm';
+          var meta=document.createElement('div');
+          meta.innerHTML='<div class="drop-title">Got it</div><div class="drop-sub">'+file.name+'</div>';
+          drop.appendChild(img); drop.appendChild(meta);
+          contBtn.style.display='inline-block';
+          f.msg.scrollIntoView({behavior:'smooth',block:'end'});
+        };
+        r.readAsDataURL(file);
+      });
+
+      contBtn.addEventListener('click',function(){ res(); });
+
+      f.body.appendChild(drop);
+      f.body.appendChild(input);
+      f.body.appendChild(contBtn);
+      f.msg.scrollIntoView({behavior:'smooth',block:'end'});
+    });
+  }
+
+  function showCards(){
+    return new Promise(function(res){
+      var f=frame('benjamin');
+      var wrap=document.createElement('div');
+
+      var grid=document.createElement('div');
+      grid.className='cards';
+      var buttons=[];
+      CATEGORIES.forEach(function(c){
+        var btn=document.createElement('button');
+        btn.type='button'; btn.className='card';
+        var h=document.createElement('h3'); h.textContent=c.title;
+        var p=document.createElement('p'); p.textContent=c.desc;
+        btn.appendChild(h); btn.appendChild(p);
+        if(c.key===rec){
+          var note=document.createElement('span');
+          note.className='rec';
+          note.textContent='From what you told me, I would start here.';
+          btn.appendChild(note);
+        }
+        btn.addEventListener('click',function(){
+          buttons.forEach(function(b2){ b2.disabled=true; });
+          btn.classList.add('chosen');
+          sayYou(c.title);
+          setTimeout(function(){ res(c.key); },280);
+        });
+        grid.appendChild(btn);
+        buttons.push(btn);
+      });
+      wrap.appendChild(grid);
+      f.body.appendChild(wrap);
+      f.msg.scrollIntoView({behavior:'smooth',block:'end'});
+    });
+  }
+
+  (async function(){
+    await wait(300);
+    say('You remember what I noticed a moment ago.', {aside:true});
+    await wait(1300);
+    if(clashClose){
+      say(clashClose, {aside:true});
+      await wait(1500);
+    }
+    say('That kind of thing never lives in just one place.', {aside:true});
+    await wait(1400);
+    say('Where does it actually show up for you right now?');
+    await wait(600);
+
+    var category = await showCards();
+    sessionStorage.setItem('benjamin_category', category);
+
+    await wait(500);
+    var mc = MC[category];
+    var mcAnswer = await ask(mc.q, mc.opts);
+    sessionStorage.setItem('benjamin_mc_answer', mcAnswer);
+
+    if(category === 'traits'){
+      await wait(500);
+      await askPhoto();
+    }
+
+    await wait(500);
+    say("Give me a moment. Let me put something together for you.", {aside:true});
+    await wait(1300);
+    window.location.href = '/sales.html';
+  })();
+})();
+</script>
+
+</body>
+</html>
