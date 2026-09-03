@@ -61,7 +61,7 @@ export async function onRequestPost(context) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 3200,
+        max_tokens: 3600,
         temperature: 0.85,
         system: systemPrompt,
         messages: [
