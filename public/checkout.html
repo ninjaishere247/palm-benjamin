@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/js/session-guard.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout | Sage of Signs</title>
@@ -106,17 +107,30 @@
 
   #processing, #success{
     display:none;
-    text-align:center;padding:80px 10px;
+    text-align:center;padding:70px 10px;
   }
-  .spin{
-    width:34px;height:34px;margin:0 auto 20px;
-    border:2px solid var(--edge);
-    border-top-color:var(--lamp);
+  .writing{
+    width:60px;height:60px;margin:0 auto 22px;
+    position:relative;
+  }
+  .writing .b-avatar{
+    width:100%;height:100%;
+  }
+  .writing .ring{
+    position:absolute;inset:-6px;
     border-radius:50%;
-    animation:spin .9s linear infinite;
+    border:1.5px solid transparent;
+    border-top-color:var(--lamp);
+    border-right-color:var(--lamp);
+    animation:orbit 1.4s linear infinite;
   }
-  @keyframes spin{to{transform:rotate(360deg);}}
-  #processing p, #success p{color:var(--muted);font-size:14px;}
+  @keyframes orbit{ to{ transform:rotate(360deg); } }
+  #procLabel{
+    font-family:'Fraunces',serif;font-weight:300;font-size:18px;
+    color:var(--paper);margin-bottom:8px;min-height:24px;
+  }
+  #processing .sub{color:var(--muted);font-size:13.5px;}
+  #success p{color:var(--muted);font-size:14px;}
   #success .tick{
     width:44px;height:44px;margin:0 auto 18px;
     border-radius:50%;
@@ -177,8 +191,12 @@
   </div>
 
   <div id="processing">
-    <div class="spin"></div>
-    <p id="procLabel">Processing your payment</p>
+    <div class="writing">
+      <div class="ring"></div>
+      <div class="b-avatar" id="procAvatar"></div>
+    </div>
+    <div id="procLabel">Processing your payment</div>
+    <div class="sub">Benjamin is already starting on your reading.</div>
   </div>
 
   <div id="success">
@@ -200,6 +218,8 @@
     '</svg>';
   var hdrAv=document.getElementById('hdrAvatar');
   if(hdrAv){ hdrAv.innerHTML=BENJAMIN_SVG; hdrAv.style.color='var(--lamp-hi)'; }
+  var procAv=document.getElementById('procAvatar');
+  if(procAv){ procAv.innerHTML=BENJAMIN_SVG; procAv.style.color='var(--lamp-hi)'; }
 
   var params=new URLSearchParams(window.location.search);
   var bundle = params.get('bundle')==='1';
@@ -215,16 +235,6 @@
   if (window.BenjaminReports && toGenerate.length) {
     BenjaminReports.pregenerate(toGenerate);
   }
-
-  var reading = sessionStorage.getItem('benjamin_reading')||'';
-  var photo = sessionStorage.getItem('benjamin_photo_preview')||'';
-  var photo2 = sessionStorage.getItem('benjamin_photo2_preview')||'';
-  var name = sessionStorage.getItem('benjamin_name')||'';
-  var chosenCategory = sessionStorage.getItem('benjamin_category')||'';
-  var mcAnswer = sessionStorage.getItem('benjamin_mc_answer')||'';
-  var checkinsRaw = sessionStorage.getItem('benjamin_checkins');
-  var checkins = {};
-  try{ checkins = checkinsRaw?JSON.parse(checkinsRaw):{}; }catch(e){}
 
   var LABELS={ career:'Career and Finances', love:'Love and Relationships', life:'Life Path and Timing', traits:'Inherent Traits and Potential' };
   var label = LABELS[category] || 'Your reading';
@@ -270,34 +280,6 @@
     else { cardExp.value=digits; }
   });
 
-  function toBlob(dataUrl){
-    var p=dataUrl.split(','), mime=p[0].match(/:(.*?);/)[1];
-    var bin=atob(p[1]), arr=new Uint8Array(bin.length);
-    for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-    return new Blob([arr],{type:mime});
-  }
-
-  async function prefetchReport(cat){
-    if(cat==='traits' && !photo2) return null; // needs a second photo we don't have yet, report.html will handle it
-    if(!photo) return null;
-    try{
-      var fd=new FormData();
-      fd.append('photo', toBlob(photo), 'palm.jpg');
-      if(cat==='traits'){ fd.append('photo2', toBlob(photo2), 'palm2.jpg'); }
-      fd.append('category', cat);
-      fd.append('reading', reading);
-      fd.append('checkins', JSON.stringify(checkins));
-      fd.append('mcAnswer', cat===chosenCategory ? mcAnswer : '');
-      fd.append('name', name);
-      var res=await fetch('/api/benjamin-report',{method:'POST', body:fd});
-      var d=await res.json();
-      if(d.error || !d.report) return null;
-      return d.report;
-    }catch(e){
-      return null;
-    }
-  }
-
   form.addEventListener('submit',function(e){
     e.preventDefault();
     err.style.display='none';
@@ -313,22 +295,11 @@
       procLabel.textContent=procMsgs[procIdx];
     }, 1500);
 
-    var categories = (bundle || topup) ? ['career','love','life','traits'] : [category];
-    var minDelay = new Promise(function(r){ setTimeout(r, 1600); });
-    var prefetch = Promise.all(categories.map(function(c){
-      return prefetchReport(c).then(function(raw){ return { cat:c, raw:raw }; });
-    }));
-
-    Promise.all([minDelay, prefetch]).then(function(results){
+    setTimeout(function(){
       clearInterval(procTimer);
-      var fetched = results[1];
-      var cache = {};
-      fetched.forEach(function(item){
-        if(item.raw) cache[item.cat] = item.raw;
-      });
-      try{ sessionStorage.setItem('benjamin_report_cache', JSON.stringify(cache)); }catch(x){}
 
-      var owned={ categories: categories, bundle: bundle };
+      var categories = (bundle || topup) ? ['career','love','life','traits'] : [category];
+      var owned={ categories: categories, bundle: (bundle||topup) };
       try{ sessionStorage.setItem('benjamin_owned', JSON.stringify(owned)); }catch(x){}
 
       processing.style.display='none';
@@ -337,7 +308,7 @@
       setTimeout(function(){
         window.location.href='/report.html';
       }, 900);
-    });
+    }, 1900);
   });
 })();
 </script>
