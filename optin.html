@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sage of Signs — Read Your Palm With Benjamin</title>
+<meta name="description" content="Upload a photo of your palm. Benjamin will read your four lines with you, live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #12142B;
+    --void-deep: #0E1024;
+    --plum: #241832;
+    --parchment: #F0E8D8;
+    --gold: #C9A227;
+    --gold-lit: #E0BC4A;
+    --copper: #C06B33;
+    --lavender: #9C96B8;
+    --line: rgba(240,232,216,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: var(--void-deep);
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .wrap{
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  header.top{
+    padding: 28px 0 0;
+  }
+  .brand{
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--lavender);
+  }
+  main{
+    padding: 56px 0 40px;
+  }
+  .intro-photo{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom: 28px;
+  }
+  .benjamin-avatar{
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #3a2f52, var(--plum) 70%);
+    border: 1px solid var(--line);
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-size: 20px;
+    color: var(--gold-lit);
+  }
+  .intro-name{
+    font-family:'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+  }
+  .intro-tag{
+    font-size: 12px;
+    color: var(--lavender);
+    margin-top: 2px;
+  }
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(30px, 6vw, 42px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 18px;
+  }
+  h1 em{
+    font-style: italic;
+    color: var(--gold-lit);
+  }
+  p.lede{
+    font-size: 17px;
+    color: var(--parchment);
+    opacity: 0.82;
+    max-width: 46ch;
+    margin-bottom: 40px;
+  }
+  .card{
+    background: var(--plum);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 32px 28px;
+  }
+  .upload-zone{
+    border: 1px dashed var(--line);
+    border-radius: 3px;
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .upload-zone:hover, .upload-zone.dragging{
+    border-color: var(--gold);
+    background: rgba(201,162,39,0.05);
+  }
+  .upload-zone.has-photo{
+    padding: 16px;
+    text-align: left;
+    display:flex;
+    align-items:center;
+    gap: 16px;
+    cursor:default;
+    border-style: solid;
+    border-color: var(--gold);
+  }
+  .upload-icon{
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 14px;
+    opacity: 0.75;
+  }
+  .upload-zone.has-photo .upload-icon{margin:0;}
+  .upload-label{
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .upload-sub{
+    font-size: 13px;
+    color: var(--lavender);
+    margin-top: 6px;
+  }
+  .photo-preview{
+    width: 56px;
+    height: 56px;
+    border-radius: 3px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+  }
+  .photo-meta{flex:1;min-width:0;}
+  .photo-name{
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .photo-change{
+    font-size: 13px;
+    color: var(--gold-lit);
+    background:none;
+    border:none;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  input[type="file"]{ display:none; }
+
+  .fields{
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.35s ease, margin-top 0.4s ease;
+  }
+  .fields.open{
+    max-height: 420px;
+    opacity: 1;
+    margin-top: 24px;
+  }
+  .field{
+    margin-bottom: 16px;
+  }
+  label{
+    display:block;
+    font-size: 13px;
+    color: var(--lavender);
+    margin-bottom: 7px;
+  }
+  input[type="text"], input[type="email"]{
+    width: 100%;
+    background: var(--void);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 13px 14px;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    color: var(--parchment);
+  }
+  input[type="text"]:focus, input[type="email"]:focus{
+    outline: none;
+    border-color: var(--gold);
+  }
+  .privacy-note{
+    font-size: 12.5px;
+    color: var(--lavender);
+    margin: 14px 0 22px;
+    line-height: 1.55;
+  }
+  button.submit{
+    width: 100%;
+    background: var(--gold);
+    color: var(--void-deep);
+    border: none;
+    border-radius: 3px;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    min-height: 44px;
+  }
+  button.submit:hover{ background: var(--gold-lit); }
+  button.submit:disabled{
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .trust-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 18px;
+    margin-top: 22px;
+    font-size: 12.5px;
+    color: var(--lavender);
+  }
+  .trust-row span{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
+  .trust-row svg{ width: 13px; height: 13px; flex-shrink:0; }
+
+  #error-region{
+    display:none;
+    background: rgba(192,107,51,0.12);
+    border: 1px solid rgba(192,107,51,0.4);
+    border-radius: 3px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+    margin-top: 18px;
+    color: var(--parchment);
+  }
+  footer{
+    padding: 20px 0 40px;
+    font-size: 12px;
+    color: var(--lavender);
+    opacity: 0.7;
+    text-align:center;
+  }
+
+  @media (max-width: 420px){
+    .card{padding:26px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">SAGE OF SIGNS</div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="intro-photo">
+      <div class="benjamin-avatar">B</div>
+      <div>
+        <div class="intro-name">Benjamin</div>
+        <div class="intro-tag">AI-guided reading, live with your palm</div>
+      </div>
+    </div>
+
+    <h1>Show me your palm, <em>I'll show you what it says.</em></h1>
+    <p class="lede">A clear photo of either hand is enough. I'll read your heart, head, life, and fate lines with you, in real time, and it costs nothing.</p>
+
+    <div class="card">
+      <form id="optin-form" novalidate>
+
+        <div class="upload-zone" id="upload-zone" tabindex="0" role="button" aria-pressed="false">
+          <svg class="upload-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="8" width="32" height="26" rx="2" stroke="#9C96B8" stroke-width="1.5"/>
+            <circle cx="14" cy="17" r="3" stroke="#9C96B8" stroke-width="1.5"/>
+            <path d="M4 28L14 20L22 26L28 20L36 27" stroke="#9C96B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="upload-label">Choose a photo of your palm</div>
+          <div class="upload-sub">Good light, palm flat, fingers relaxed</div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" capture="environment">
+
+        <div class="fields" id="fields">
+          <div class="field">
+            <label for="name-input">First name</label>
+            <input type="text" id="name-input" name="name" autocomplete="given-name" placeholder="What should Benjamin call you?">
+          </div>
+          <div class="field">
+            <label for="email-input">Email</label>
+            <input type="email" id="email-input" name="email" autocomplete="email" placeholder="you@example.com" required>
+          </div>
+
+          <div class="privacy-note">
+            Your photo is used only to generate your reading and is not shared, sold, or stored beyond what's needed to deliver it to you.
+          </div>
+
+          <button type="submit" class="submit" id="submit-btn" disabled>Begin my reading, free</button>
+
+          <div class="trust-row">
+            <span>
+              <svg viewBox="0 0 16 16" fill="none"><path d="M2 8.5L6 12L14 4" stroke="#9C96B8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Free reading
+            </span>
+            <span>
+              <svg viewBox="0 0 16 16" fill="none"><path d="M2 8.5L6 12L14 4" stroke="#9C96B8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              No card needed
+            </span>
+            <span>
+              <svg viewBox="0 0 16 16" fill="none"><path d="M2 8.5L6 12L14 4" stroke="#9C96B8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Takes about a minute
+            </span>
+          </div>
+        </div>
+
+        <div id="error-region" role="alert"></div>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  For self-reflection and entertainment. Not a substitute for professional, medical, legal, or financial advice.
+</footer>
+
+<script>
+(function(){
+  const uploadZone = document.getElementById('upload-zone');
+  const photoInput = document.getElementById('photo-input');
+  const fields = document.getElementById('fields');
+  const submitBtn = document.getElementById('submit-btn');
+  const nameInput = document.getElementById('name-input');
+  const emailInput = document.getElementById('email-input');
+  const errorRegion = document.getElementById('error-region');
+  const form = document.getElementById('optin-form');
+
+  let chosenFile = null;
+
+  function openZone(){ photoInput.click(); }
+  uploadZone.addEventListener('click', openZone);
+  uploadZone.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openZone(); }
+  });
+
+  photoInput.addEventListener('change', function(){
+    const file = photoInput.files[0];
+    if(!file) return;
+    chosenFile = file;
+    renderChosenPhoto(file);
+    fields.classList.add('open');
+    uploadZone.setAttribute('aria-pressed', 'true');
+    validate();
+  });
+
+  function renderChosenPhoto(file){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      uploadZone.classList.add('has-photo');
+      uploadZone.innerHTML =
+        '<img class="photo-preview" src="' + e.target.result + '" alt="Your uploaded palm photo">' +
+        '<div class="photo-meta">' +
+          '<div class="photo-name">' + escapeHtml(file.name) + '</div>' +
+          '<button type="button" class="photo-change" id="change-photo-btn">Choose a different photo</button>' +
+        '</div>';
+      document.getElementById('change-photo-btn').addEventListener('click', function(e){
+        e.stopPropagation();
+        photoInput.click();
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function validate(){
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+    submitBtn.disabled = !(chosenFile && emailOk);
+  }
+
+  emailInput.addEventListener('input', validate);
+  nameInput.addEventListener('input', validate);
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    errorRegion.style.display = 'none';
+
+    if(!chosenFile){
+      showError('Please choose a photo of your palm first.');
+      return;
+    }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())){
+      showError('Please enter a valid email address.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'One moment...';
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        sessionStorage.setItem('benjamin_photo_preview', e.target.result);
+        sessionStorage.setItem('benjamin_name', nameInput.value.trim());
+        sessionStorage.setItem('benjamin_email', emailInput.value.trim());
+        sessionStorage.removeItem('benjamin_reading');
+        sessionStorage.removeItem('benjamin_category');
+        sessionStorage.removeItem('benjamin_owned');
+        sessionStorage.removeItem('benjamin_report');
+        window.location.href = '/reading.html';
+      }catch(err){
+        showError('Something went wrong preparing your reading. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Begin my reading, free';
+      }
+    };
+    reader.readAsDataURL(chosenFile);
+  });
+
+  function showError(msg){
+    errorRegion.textContent = msg;
+    errorRegion.style.display = 'block';
+  }
+})();
+</script>
+
+</body>
+</html>
