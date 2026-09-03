@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <script src="/js/session-guard.js"></script>
+<link rel="stylesheet" href="/css/ambient.css">
+<script src="/js/ambient.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Going deeper | Sage of Signs</title>
@@ -26,12 +28,6 @@
     background:var(--ink);color:var(--paper);
     font-family:'Inter',system-ui,sans-serif;
     line-height:1.7;min-height:100vh;overflow-x:hidden;
-  }
-  body::before{
-    content:'';position:fixed;top:-25vh;left:50%;transform:translateX(-50%);
-    width:130vw;height:80vh;max-width:1200px;
-    background:radial-gradient(ellipse at 50% 30%, rgba(224,162,74,0.12), rgba(224,162,74,0.03) 45%, transparent 70%);
-    pointer-events:none;z-index:0;
   }
   .shell{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:0 22px;}
 
