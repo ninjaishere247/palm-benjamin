@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <script src="/js/session-guard.js"></script>
+<link rel="stylesheet" href="/css/ambient.css">
+<script src="/js/ambient.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Read your palm with Benjamin</title>
@@ -33,33 +35,6 @@
     overflow-x:hidden;
     position:relative;
   }
-  body::before{
-    content:'';
-    position:fixed;
-    top:-30vh; left:-20vw;
-    width:90vw; height:90vh;
-    max-width:1100px; max-height:1100px;
-    background:radial-gradient(circle at 50% 50%, rgba(224,162,74,0.16), rgba(224,162,74,0.05) 42%, transparent 68%);
-    pointer-events:none;
-    z-index:0;
-    animation:breathe 11s ease-in-out infinite;
-  }
-  body::after{
-    content:'';
-    position:fixed;
-    bottom:-35vh; right:-25vw;
-    width:80vw; height:85vh;
-    max-width:980px; max-height:980px;
-    background:radial-gradient(circle at 50% 50%, rgba(181,105,90,0.09), rgba(181,105,90,0.03) 45%, transparent 70%);
-    pointer-events:none;
-    z-index:0;
-    animation:breathe 14s ease-in-out infinite 2s;
-  }
-  @keyframes breathe{
-    0%,100%{opacity:.85; transform:scale(1);}
-    50%{opacity:1; transform:scale(1.05);}
-  }
-
   .shell{
     position:relative;
     z-index:1;
