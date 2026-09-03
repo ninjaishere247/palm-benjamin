@@ -182,9 +182,9 @@ THE PATTERN: Ground this in one of the already-established physical observations
 THE ORIGIN: The mechanism behind that pattern. Why it shows up this way for them specifically, grounded in the established facts, not generic psychology.
 THE TENSION: A genuine trade-off or contradiction between two of the established observations, relevant to this area. Something that has both served and cost them.
 THE COST: What staying exactly as they are is quietly costing them right now, specifically in ${categoryLabel}, not in general.
-THE OPENING: Reframe a perceived weakness as a misapplied strength, or the reverse, and what becomes possible if they see it differently.
+THE OPENING: Reframe a perceived weakness as a misapplied strength, or the reverse. This section must end on genuine relief or permission, a real exhale, not just an interesting reframe. The reader should feel let off the hook for something they have been quietly hard on themselves about, not simply given a new way to think about it.
 THE PHASE: What stage or chapter they appear to be in right now, without naming dates or predicting outcomes.
-WATCH: Two or three specific, observable things to notice in themselves this week. Concrete, not vague.
+WATCH: Two or three specific, observable behaviors to notice in themselves this week, concrete enough that they could catch themselves doing it in the moment. Never use vague mood-monitoring phrases like "notice how you feel" or "pay attention to your emotions". Each item should describe an actual action, sentence, or reaction a person could observe themselves doing, not a feeling to track.
 
 Hard rules for the entire response:
 - No em dashes anywhere, under any circumstance.
@@ -192,7 +192,7 @@ Hard rules for the entire response:
 - Never use vague, Barnum-style language that could apply to anyone. Every claim should be specific enough that it could be wrong for someone else.
 - Never give medical, legal, financial, or psychological advice, and never make concrete real-world predictions (no dates, named people, financial or legal outcomes).
 - Palmistry has no real predictive power. Never imply otherwise.
-- Write with settled, definite confidence. Never hedge.
+- Write with settled, definite confidence. Never hedge. Do not use "might", "could", "perhaps", "maybe", "tends to", "it's possible that", or similar softening language anywhere in the response.
 - Never introduce a new physical description of the dominant hand that isn't already in the established facts above.`;
 }
 
