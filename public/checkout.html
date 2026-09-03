@@ -151,20 +151,20 @@
     <form id="payForm">
       <div class="field">
         <label for="cardName">Name on card</label>
-        <input type="text" id="cardName" autocomplete="cc-name" placeholder="Full name" required>
+        <input type="text" id="cardName" autocomplete="cc-name" placeholder="Full name">
       </div>
       <div class="field">
         <label for="cardNum">Card number</label>
-        <input type="text" id="cardNum" autocomplete="cc-number" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19" required>
+        <input type="text" id="cardNum" autocomplete="cc-number" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19">
       </div>
       <div class="row2">
         <div class="field">
           <label for="cardExp">Expiry</label>
-          <input type="text" id="cardExp" autocomplete="cc-exp" placeholder="MM / YY" maxlength="7" required>
+          <input type="text" id="cardExp" autocomplete="cc-exp" placeholder="MM / YY" maxlength="7">
         </div>
         <div class="field">
           <label for="cardCvc">CVC</label>
-          <input type="text" id="cardCvc" autocomplete="cc-csc" inputmode="numeric" placeholder="123" maxlength="4" required>
+          <input type="text" id="cardCvc" autocomplete="cc-csc" inputmode="numeric" placeholder="123" maxlength="4">
         </div>
       </div>
       <button type="submit" class="pay" id="payBtn">Pay</button>
@@ -245,17 +245,6 @@
   form.addEventListener('submit',function(e){
     e.preventDefault();
     err.style.display='none';
-
-    var numOk = cardNum.value.replace(/\D/g,'').length>=13;
-    var expOk = /^\d{2}\s*\/\s*\d{2}$/.test(cardExp.value.trim());
-    var cvcOk = document.getElementById('cardCvc').value.trim().length>=3;
-    var nameOk = document.getElementById('cardName').value.trim().length>1;
-
-    if(!(numOk && expOk && cvcOk && nameOk)){
-      err.textContent='Please check your card details.';
-      err.style.display='block';
-      return;
-    }
 
     formWrap.style.display='none';
     processing.style.display='block';
