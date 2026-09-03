@@ -51,8 +51,15 @@ var BenjaminReports = (function () {
     } catch (e) {}
   }
 
+  function isValidSections(sections) {
+    if (!sections) return false;
+    var foundKeys = Object.keys(sections).filter(function (k) { return sections[k]; });
+    return foundKeys.length >= 3;
+  }
+
   function getCached(category) {
-    return getCache()[category] || null;
+    var sections = getCache()[category] || null;
+    return isValidSections(sections) ? sections : null;
   }
 
   // Returns true if we have everything needed to generate this category
@@ -93,8 +100,7 @@ var BenjaminReports = (function () {
     if (d.rateLimited) throw d.message;
     if (d.error || !d.report) throw (d.message || 'Something went wrong writing this report.');
     var sections = parseReport(d.report);
-    var foundKeys = Object.keys(sections).filter(function (k) { return sections[k]; });
-    if (foundKeys.length < 3) {
+    if (!isValidSections(sections)) {
       throw 'The report came back in an unexpected format. Please try again.';
     }
     setCacheEntry(category, sections);
