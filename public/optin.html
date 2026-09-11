@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="/css/ambient.css">
 <script src="/js/ambient.js"></script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Read your palm with Benjamin</title>
 <meta name="description" content="A free palm reading, read with you line by line. No card needed.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,46 +25,58 @@
     --muted:#9A8F82;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
   html{-webkit-text-size-adjust:100%;}
   body{
     background:var(--ink);
     color:var(--paper);
     font-family:'Inter',system-ui,sans-serif;
-    line-height:1.65;
-    min-height:100vh;
-    overflow-x:hidden;
+    line-height:1.5;
+    height:100dvh;
+    height:100vh;
+    overflow:hidden;
     position:relative;
+    display:flex;
+    flex-direction:column;
   }
+
   .shell{
-    position:relative;
-    z-index:1;
-    max-width:1140px;
+    position:relative;z-index:1;
+    max-width:1140px;width:100%;
     margin:0 auto;
     padding:0 24px;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    min-height:0;
   }
 
   .masthead{
-    padding:26px 0 0;
+    padding:clamp(10px,2.2vh,20px) 0 0;
     font-family:'Fraunces',serif;
-    font-size:15px;
+    font-size:14px;
     letter-spacing:.02em;
     color:var(--paper-dim);
+    flex-shrink:0;
   }
 
   .hero{
     display:grid;
-    grid-template-columns:1.05fr .95fr;
-    gap:56px;
+    grid-template-columns:1.05fr .8fr;
+    gap:clamp(20px,4vw,48px);
     align-items:center;
-    padding:64px 0 72px;
+    flex:1;
+    min-height:0;
+    padding:clamp(6px,1.6vh,18px) 0;
   }
+  .hero-copy{min-height:0;display:flex;flex-direction:column;justify-content:center;}
   h1{
     font-family:'Fraunces',serif;
     font-weight:300;
-    font-size:clamp(34px,5.2vw,60px);
+    font-size:clamp(24px,4vh,42px);
     line-height:1.08;
     letter-spacing:-0.015em;
-    margin-bottom:22px;
+    margin-bottom:clamp(8px,1.6vh,16px);
   }
   h1 .turn{
     display:block;
@@ -72,10 +84,10 @@
     color:var(--lamp);
   }
   .lede{
-    font-size:clamp(16px,2.1vw,18.5px);
+    font-size:clamp(13.5px,1.7vh,16px);
     color:var(--paper-dim);
-    max-width:44ch;
-    margin-bottom:34px;
+    max-width:46ch;
+    margin-bottom:clamp(10px,2vh,20px);
   }
 
   .palm-wrap{
@@ -83,10 +95,11 @@
     display:flex;
     align-items:center;
     justify-content:center;
+    min-height:0;
   }
   .palm{
     width:100%;
-    max-width:340px;
+    max-width:min(260px, 30vh);
     height:auto;
     overflow:visible;
   }
@@ -110,391 +123,148 @@
   .palm .l-fate{  stroke:#9C8FA8;        --len:170; animation-delay:1.55s; }
 
   .key{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px 18px;
-    margin-top:22px;
+    display:flex;flex-wrap:wrap;gap:6px 14px;
+    margin-top:clamp(8px,1.6vh,16px);
     justify-content:center;
-    font-size:12.5px;
+    font-size:11.5px;
     color:var(--muted);
   }
-  .key span{display:flex;align-items:center;gap:7px;}
-  .key i{width:16px;height:2px;border-radius:2px;display:block;}
+  .key span{display:flex;align-items:center;gap:6px;}
+  .key i{width:14px;height:2px;border-radius:2px;display:block;}
 
   .benjamin{
-    display:flex;
-    align-items:flex-start;
-    gap:14px;
-    padding:18px 20px;
+    display:flex;align-items:flex-start;gap:12px;
+    padding:clamp(8px,1.4vh,14px) 16px;
     border:1px solid var(--edge);
     border-radius:2px;
     background:linear-gradient(180deg, rgba(224,162,74,0.05), transparent);
-    margin-bottom:34px;
+    margin-bottom:clamp(8px,1.6vh,16px);
     max-width:520px;
   }
   .avatar{
-    width:46px;height:46px;
-    border-radius:50%;
-    flex-shrink:0;
+    width:36px;height:36px;border-radius:50%;flex-shrink:0;
     background:radial-gradient(circle at 34% 30%, #4A3B2C, #2A231D 72%);
     border:1px solid var(--edge-lit);
     display:flex;align-items:center;justify-content:center;
-    font-family:'Fraunces',serif;
-    font-size:20px;
-    color:var(--lamp-hi);
+    font-family:'Fraunces',serif;font-size:16px;color:var(--lamp-hi);
   }
   .avatar svg{width:60%;height:60%;}
-  .b-name{
-    font-family:'Fraunces',serif;
-    font-size:17px;
-    line-height:1.3;
-  }
-  .b-tag{
-    font-size:12.5px;
-    color:var(--muted);
-    margin-top:1px;
-  }
+  .b-name{font-family:'Fraunces',serif;font-size:14.5px;line-height:1.25;}
+  .b-tag{font-size:11.5px;color:var(--muted);margin-top:1px;}
   .b-word{
-    font-family:'Fraunces',serif;
-    font-style:italic;
-    font-size:15.5px;
-    color:var(--paper-dim);
-    margin-top:9px;
-    line-height:1.5;
+    font-family:'Fraunces',serif;font-style:italic;
+    font-size:13px;color:var(--paper-dim);
+    margin-top:6px;line-height:1.42;
+    display:none;
   }
 
   .start{max-width:520px;}
   .drop{
-    border:1px dashed var(--edge);
-    border-radius:2px;
-    padding:30px 22px;
+    border:1px dashed var(--edge);border-radius:2px;
+    padding:clamp(10px,2vh,18px) 16px;
     text-align:center;
     transition:border-color .25s, background .25s;
     background:rgba(237,230,218,0.015);
   }
   .drop.filled{
-    border-style:solid;
-    border-color:var(--edge-lit);
-    padding:14px;
-    display:flex;
-    align-items:center;
-    gap:14px;
-    text-align:left;
-    cursor:default;
+    border-style:solid;border-color:var(--edge-lit);
+    padding:10px;display:flex;align-items:center;gap:12px;
+    text-align:left;cursor:default;
   }
-  .drop-icon{width:34px;height:34px;margin:0 auto 12px;opacity:.6;}
-  .drop-title{font-size:15.5px;font-weight:500;}
-  .drop-sub{font-size:13px;color:var(--muted);margin-top:5px;}
-  .src-row{
-    display:flex;
-    gap:10px;
-    justify-content:center;
-    margin-top:20px;
-    flex-wrap:wrap;
-  }
+  .drop-icon{width:24px;height:24px;margin:0 auto 8px;opacity:.6;}
+  .drop-title{font-size:14px;font-weight:500;}
+  .drop-sub{font-size:11.5px;color:var(--muted);margin-top:4px;display:none;}
+  .src-row{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
   .src-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    background:var(--ink-2);
-    border:1px solid var(--edge);
-    border-radius:2px;
-    color:var(--paper);
-    font-family:'Inter',sans-serif;
-    font-size:14px;
-    font-weight:500;
-    padding:12px 18px;
-    cursor:pointer;
-    min-height:44px;
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--ink-2);border:1px solid var(--edge);border-radius:2px;
+    color:var(--paper);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+    padding:10px 14px;cursor:pointer;min-height:42px;
     transition:border-color .2s, background .2s;
   }
-  .src-btn svg{width:17px;height:17px;color:var(--lamp);flex-shrink:0;}
+  .src-btn svg{width:15px;height:15px;color:var(--lamp);flex-shrink:0;}
   .src-btn:hover,.src-btn:focus-visible{
-    border-color:var(--edge-lit);
-    background:rgba(224,162,74,0.07);
-    outline:none;
+    border-color:var(--edge-lit);background:rgba(224,162,74,0.07);outline:none;
   }
   .preparing{
-    display:flex;
-    align-items:center;
-    gap:11px;
-    padding:6px 4px;
-    font-family:'Fraunces',serif;
-    font-style:italic;
-    font-size:15px;
-    color:var(--paper-dim);
+    display:flex;align-items:center;gap:10px;padding:4px 4px;
+    font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--paper-dim);
   }
   .prep-dot{
-    width:8px;height:8px;
-    border-radius:50%;
-    background:var(--lamp);
-    flex-shrink:0;
+    width:7px;height:7px;border-radius:50%;background:var(--lamp);flex-shrink:0;
     animation:prepPulse 1.1s ease-in-out infinite;
   }
-  @keyframes prepPulse{
-    0%,100%{opacity:1; transform:scale(1);}
-    50%{opacity:.35; transform:scale(.72);}
-  }
-  @media (prefers-reduced-motion:reduce){
-    .prep-dot{animation:none;}
-  }
-  .thumb{
-    width:54px;height:54px;
-    border-radius:2px;
-    object-fit:cover;
-    flex-shrink:0;
-    border:1px solid var(--edge);
-  }
+  @keyframes prepPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.72);}}
+  @media (prefers-reduced-motion:reduce){ .prep-dot{animation:none;} }
+  .thumb{width:44px;height:44px;border-radius:2px;object-fit:cover;flex-shrink:0;border:1px solid var(--edge);}
   .thumb-meta{flex:1;min-width:0;}
-  .thumb-name{
-    font-size:14px;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  }
+  .thumb-name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .swap{
-    background:none;border:none;padding:0;
-    color:var(--lamp);
-    font:inherit;font-size:13px;
-    cursor:pointer;
-    text-decoration:underline;
-    text-underline-offset:3px;
-    margin-top:3px;
+    background:none;border:none;padding:0;color:var(--lamp);
+    font:inherit;font-size:12px;cursor:pointer;
+    text-decoration:underline;text-underline-offset:3px;margin-top:3px;
   }
   input[type=file]{display:none;}
 
   .fields{
     max-height:0;overflow:hidden;opacity:0;
-    transition:max-height .45s ease, opacity .4s ease, margin-top .45s ease;
+    transition:max-height .4s ease, opacity .35s ease, margin-top .4s ease;
   }
-  .fields.open{max-height:520px;opacity:1;margin-top:22px;}
-  .field{margin-bottom:15px;}
-  label{
-    display:block;
-    font-size:12.5px;
-    color:var(--muted);
-    margin-bottom:6px;
-  }
+  .fields.open{max-height:340px;opacity:1;margin-top:12px;}
+  .field{margin-bottom:9px;}
+  label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
   input[type=text],input[type=email]{
-    width:100%;
-    background:var(--ink-2);
-    border:1px solid var(--edge);
-    border-radius:2px;
-    padding:13px 14px;
-    font-size:16px;
-    font-family:'Inter',sans-serif;
-    color:var(--paper);
+    width:100%;background:var(--ink-2);border:1px solid var(--edge);border-radius:2px;
+    padding:10px 12px;font-size:15px;font-family:'Inter',sans-serif;color:var(--paper);
     transition:border-color .2s;
   }
   input:focus{outline:none;border-color:var(--edge-lit);}
-  .privacy{
-    font-size:12.5px;
-    color:var(--muted);
-    margin:13px 0 20px;
-  }
+  .privacy{font-size:11px;color:var(--muted);margin:8px 0 12px;}
   .go{
-    width:100%;
-    background:var(--lamp);
-    color:#191410;
-    border:none;
-    border-radius:2px;
-    padding:17px;
-    font-family:'Inter',sans-serif;
-    font-size:15.5px;
-    font-weight:600;
-    cursor:pointer;
-    min-height:48px;
+    width:100%;background:var(--lamp);color:#191410;border:none;border-radius:2px;
+    padding:14px;font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;
+    cursor:pointer;min-height:46px;
     transition:background .2s, transform .1s;
   }
   .go:hover:not(:disabled){background:var(--lamp-hi);}
   .go:active:not(:disabled){transform:translateY(1px);}
   .go:disabled{opacity:.42;cursor:not-allowed;}
-  .assur{
-    display:flex;flex-wrap:wrap;gap:7px 16px;
-    margin-top:16px;
-    font-size:12.5px;color:var(--muted);
-  }
-  .assur span{display:flex;align-items:center;gap:6px;}
-  .assur svg{width:12px;height:12px;flex-shrink:0;}
+  .assur{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:10px;font-size:11px;color:var(--muted);}
+  .assur span{display:flex;align-items:center;gap:5px;}
+  .assur svg{width:11px;height:11px;flex-shrink:0;}
 
   #err{
-    display:none;
-    border:1px solid rgba(181,105,90,.45);
-    background:rgba(181,105,90,.10);
-    border-radius:2px;
-    padding:13px 15px;
-    font-size:13.5px;
-    margin-top:16px;
+    display:none;border:1px solid rgba(181,105,90,.45);background:rgba(181,105,90,.10);
+    border-radius:2px;padding:10px 13px;font-size:13px;margin-top:10px;
   }
-
-  .rule{height:1px;background:var(--edge);}
-  .band{padding:64px 0;}
-  .band-h{
-    font-family:'Fraunces',serif;
-    font-weight:300;
-    font-size:clamp(24px,3.4vw,34px);
-    line-height:1.2;
-    margin-bottom:34px;
-    max-width:22ch;
-  }
-  .lines-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:1px;
-    background:var(--edge);
-    border:1px solid var(--edge);
-  }
-  .lcell{
-    background:var(--ink);
-    padding:24px 20px;
-  }
-  .lcell i{
-    display:block;
-    width:26px;height:2px;
-    border-radius:2px;
-    margin-bottom:14px;
-  }
-  .lcell h3{
-    font-family:'Fraunces',serif;
-    font-weight:400;
-    font-size:19px;
-    margin-bottom:8px;
-  }
-  .lcell p{
-    font-size:14px;
-    color:var(--paper-dim);
-    line-height:1.6;
-  }
-
-  .steps{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:28px;
-    counter-reset:s;
-  }
-  .step{
-    padding-top:18px;
-    border-top:1px solid var(--edge);
-  }
-  .step::before{
-    counter-increment:s;
-    content:counter(s);
-    font-family:'Fraunces',serif;
-    font-size:13px;
-    color:var(--lamp);
-    display:block;
-    margin-bottom:10px;
-  }
-  .step h3{
-    font-family:'Fraunces',serif;
-    font-weight:400;
-    font-size:18px;
-    margin-bottom:7px;
-  }
-  .step p{font-size:14px;color:var(--paper-dim);}
-
-  .plain{
-    max-width:60ch;
-    font-size:15.5px;
-    color:var(--paper-dim);
-  }
-  .plain p{margin-bottom:14px;}
-  .plain strong{color:var(--paper);font-weight:500;}
-
-  details{border-top:1px solid var(--edge);}
-  details:last-of-type{border-bottom:1px solid var(--edge);}
-  summary{
-    cursor:pointer;
-    list-style:none;
-    padding:18px 32px 18px 0;
-    font-size:15.5px;
-    position:relative;
-    min-height:48px;
-    display:flex;
-    align-items:center;
-  }
-  summary::-webkit-details-marker{display:none;}
-  summary::after{
-    content:'';
-    position:absolute;
-    right:6px;top:50%;
-    width:9px;height:9px;
-    border-right:1.5px solid var(--muted);
-    border-bottom:1.5px solid var(--muted);
-    transform:translateY(-70%) rotate(45deg);
-    transition:transform .22s;
-  }
-  details[open] summary::after{transform:translateY(-30%) rotate(-135deg);}
-  details p{
-    padding:0 0 20px;
-    font-size:14.5px;
-    color:var(--paper-dim);
-    max-width:62ch;
-  }
-
-  .closer{
-    text-align:center;
-    padding:72px 0 84px;
-  }
-  .closer h2{
-    font-family:'Fraunces',serif;
-    font-weight:300;
-    font-style:italic;
-    font-size:clamp(24px,3.6vw,34px);
-    line-height:1.25;
-    margin:0 auto 26px;
-    max-width:20ch;
-  }
-  .up{
-    background:var(--lamp);
-    color:#191410;
-    text-decoration:none;
-    padding:16px 34px;
-    border-radius:2px;
-    font-weight:600;
-    font-size:15.5px;
-    min-height:48px;
-    display:inline-flex;
-    align-items:center;
-  }
-  .up:hover{background:var(--lamp-hi);}
 
   footer{
-    border-top:1px solid var(--edge);
-    padding:26px 24px 40px;
-    font-size:12.5px;
-    color:var(--muted);
-    text-align:center;
+    flex-shrink:0;
+    padding:6px 24px clamp(6px,1.4vh,12px);
+    font-size:10.5px;color:var(--muted);text-align:center;
   }
 
-  .rise{
-    opacity:0;
-    transform:translateY(14px);
-    animation:rise .7s cubic-bezier(.2,.6,.2,1) forwards;
-  }
-  .rise.d1{animation-delay:.05s;}
-  .rise.d2{animation-delay:.16s;}
-  .rise.d3{animation-delay:.27s;}
-  .rise.d4{animation-delay:.38s;}
+  .rise{opacity:0;transform:translateY(10px);animation:rise .6s cubic-bezier(.2,.6,.2,1) forwards;}
+  .rise.d1{animation-delay:.03s;}
+  .rise.d2{animation-delay:.1s;}
+  .rise.d3{animation-delay:.17s;}
+  .rise.d4{animation-delay:.24s;}
   @keyframes rise{to{opacity:1;transform:none;}}
 
-  .obs{opacity:0;transform:translateY(16px);transition:opacity .7s, transform .7s;}
-  .obs.seen{opacity:1;transform:none;}
-
   @media (max-width:900px){
-    .hero{grid-template-columns:1fr;gap:38px;padding:44px 0 56px;}
-    .palm-wrap{order:-1;}
-    .palm{max-width:236px;}
-    .lines-grid{grid-template-columns:repeat(2,1fr);}
-    .steps{grid-template-columns:1fr;gap:22px;}
+    .hero{grid-template-columns:1fr;gap:10px;align-content:center;}
+    .palm-wrap{display:none;}
+    .b-word{display:none;}
+    .drop-sub{display:none;}
+  }
+  @media (max-height:680px){
+    .b-word{display:none;}
+    .drop-sub{display:none;}
+    h1{font-size:clamp(20px,3.4vh,30px);}
   }
   @media (max-width:520px){
     .shell{padding:0 18px;}
-    .band{padding:48px 0;}
-    .benjamin{padding:16px;gap:12px;}
-    .lcell{padding:20px 16px;}
-    .closer{padding:56px 0 64px;}
-  }
-  @media (max-width:360px){
-    .key{gap:6px 12px;font-size:11.5px;}
+    .benjamin{padding:9px 13px;gap:10px;}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -504,7 +274,7 @@
       transition-duration:.01ms !important;
     }
     .palm .pline{stroke-dashoffset:0;}
-    .rise,.obs{opacity:1;transform:none;}
+    .rise{opacity:1;transform:none;}
   }
 </style>
 </head>
@@ -514,16 +284,16 @@
   <div class="masthead rise d1">Sage of Signs</div>
 
   <section class="hero">
-    <div>
+    <div class="hero-copy">
       <h1 class="rise d2">Almost nothing in a life<span class="turn">reads you back to yourself.</span></h1>
-      <p class="lede rise d3">Your palm is a place to start. Show me your hand and I will read the four lines with you, one at a time, and tell you what they say about how you love, how you decide, and where you are actually standing right now.</p>
+      <p class="lede rise d3">Show me your hand and I will read the four lines with you, one at a time, right now.</p>
 
       <div class="benjamin rise d4">
         <div class="avatar" id="benjaminAvatar" aria-hidden="true"></div>
         <div>
           <div class="b-name">Benjamin</div>
           <div class="b-tag">Your reader. AI guided, honest about it.</div>
-          <div class="b-word">I am not going to tell you your future. I am going to tell you what is already in your hand, and you can decide what to do with it.</div>
+          <div class="b-word">I am not going to tell you your future. I am going to tell you what is already in your hand.</div>
         </div>
       </div>
 
@@ -536,7 +306,7 @@
               <path d="M3 24l8-6.5 6.5 5L23 17l8 7.5" stroke="#9A8F82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div class="drop-title">Add a photo of your dominant hand</div>
-            <div class="drop-sub">The hand you write with, usually your right hand, or your left if you're left-handed. This is the hand palmistry reads from. Good light, palm open, fingers relaxed.</div>
+            <div class="drop-sub">The hand you write with. Good light, palm open, fingers relaxed.</div>
             <div class="src-row">
               <button type="button" class="src-btn" id="camBtn">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 7a1.5 1.5 0 0 1 1.5-1.5h1.2l.6-1.2A1.5 1.5 0 0 1 7.6 3.5h4.8a1.5 1.5 0 0 1 1.3.8l.6 1.2h1.2A1.5 1.5 0 0 1 17 7v7.5A1.5 1.5 0 0 1 15.5 16h-11A1.5 1.5 0 0 1 3 14.5V7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="10" cy="10.5" r="2.6" stroke="currentColor" stroke-width="1.3"/></svg>
@@ -560,7 +330,7 @@
               <label for="em">Email</label>
               <input type="email" id="em" autocomplete="email" placeholder="you@example.com" required>
             </div>
-            <p class="privacy">Your photo is used to write your reading and nothing else. It is not sold or shared.</p>
+            <p class="privacy">Your photo is used to write your reading and nothing else.</p>
             <button type="submit" class="go" id="go" disabled>Begin my reading</button>
             <div class="assur">
               <span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8.5L6 12L14 4" stroke="#9A8F82" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Free</span>
@@ -590,108 +360,6 @@
         </div>
       </div>
     </div>
-  </section>
-</div>
-
-<div class="rule"></div>
-
-<div class="shell">
-  <section class="band obs">
-    <h2 class="band-h">Four lines, and what each one is actually about.</h2>
-    <div class="lines-grid">
-      <div class="lcell">
-        <i style="background:#E0A24A"></i>
-        <h3>Heart</h3>
-        <p>How you attach, what you need to feel safe, and what you do when you stop feeling it.</p>
-      </div>
-      <div class="lcell">
-        <i style="background:#F0BC6C"></i>
-        <h3>Head</h3>
-        <p>How you actually decide. Whether you move on instinct or turn things over until they wear thin.</p>
-      </div>
-      <div class="lcell">
-        <i style="background:#B5695A"></i>
-        <h3>Life</h3>
-        <p>Your energy and footing. Not how long you live, which no line can tell you.</p>
-      </div>
-      <div class="lcell">
-        <i style="background:#9C8FA8"></i>
-        <h3>Fate</h3>
-        <p>How much of your direction comes from you, and how much has been handed to you.</p>
-      </div>
-    </div>
-  </section>
-</div>
-
-<div class="rule"></div>
-
-<div class="shell">
-  <section class="band obs">
-    <h2 class="band-h">How this goes.</h2>
-    <div class="steps">
-      <div class="step">
-        <h3>You send a photo</h3>
-        <p>One hand, one photo. No account, no card, nothing to install.</p>
-      </div>
-      <div class="step">
-        <h3>Benjamin reads it with you</h3>
-        <p>Line by line, in a conversation, not a report. He stops and asks what lands and what does not.</p>
-      </div>
-      <div class="step">
-        <h3>You keep the whole reading</h3>
-        <p>All four lines, free. If you want to go deeper into one part of your life afterward, that part is optional.</p>
-      </div>
-    </div>
-  </section>
-</div>
-
-<div class="rule"></div>
-
-<div class="shell">
-  <section class="band obs">
-    <h2 class="band-h">Plainly, before you start.</h2>
-    <div class="plain">
-      <p><strong>Palmistry cannot predict your future.</strong> There is no evidence that it can, and Benjamin will never give you a date, a name, or a promise about what is going to happen.</p>
-      <p>What it can do is give you language. Most people carry patterns they have felt for years and never had said back to them plainly. That is the thing that is actually useful here, and that is the part people tend to sit with afterward.</p>
-      <p>Read it the way you would read a good letter about yourself. Keep what fits. Leave what does not.</p>
-    </div>
-  </section>
-</div>
-
-<div class="rule"></div>
-
-<div class="shell">
-  <section class="band obs">
-    <h2 class="band-h">Questions people ask first.</h2>
-    <details>
-      <summary>Is this really free?</summary>
-      <p>The full reading of all four lines is free, with no card and no account. Afterward you can choose to go deeper into one area of your life, and that part is paid. You will see the price before anything else happens.</p>
-    </details>
-    <details>
-      <summary>What happens to my photo?</summary>
-      <p>It is used to write your reading and nothing else. It is not sold, shared, or published anywhere.</p>
-    </details>
-    <details>
-      <summary>How is this different from a horoscope?</summary>
-      <p>A horoscope is written once for millions of people born in the same month. This is written from your hand, and it commits to specific things that could be wrong about you rather than safe things that are true about everyone.</p>
-    </details>
-    <details>
-      <summary>Is a person reading my palm?</summary>
-      <p>No. Benjamin is an AI reader, and we say so plainly rather than pretending otherwise. The reading is written fresh from your photo, not pulled from a template.</p>
-    </details>
-    <details>
-      <summary>What if my photo is not good enough?</summary>
-      <p>Benjamin will tell you what to fix and let you try again rather than guessing at lines he cannot see.</p>
-    </details>
-  </section>
-</div>
-
-<div class="rule"></div>
-
-<div class="shell">
-  <section class="closer obs">
-    <h2>Your hand has been keeping this record the whole time.</h2>
-    <a class="up" href="#" id="upTop">Read my palm, free</a>
   </section>
 </div>
 
@@ -824,23 +492,6 @@
       go.disabled=false; go.textContent='Begin my reading';
     }
   });
-
-  document.getElementById('upTop').addEventListener('click',function(e){
-    e.preventDefault();
-    window.scrollTo({top:0,behavior:'smooth'});
-    setTimeout(function(){ if(!chosen) drop.focus(); },600);
-  });
-
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(entries){
-      entries.forEach(function(en){
-        if(en.isIntersecting){ en.target.classList.add('seen'); io.unobserve(en.target); }
-      });
-    },{threshold:.12});
-    document.querySelectorAll('.obs').forEach(function(el){ io.observe(el); });
-  } else {
-    document.querySelectorAll('.obs').forEach(function(el){ el.classList.add('seen'); });
-  }
 })();
 </script>
 
