@@ -67,6 +67,23 @@
     background:var(--card);border:1px solid var(--edge);border-radius:3px;
     padding:20px 22px;margin-bottom:22px;
   }
+  .bump{
+    background:var(--card);border:1px solid var(--edge-lit);border-radius:3px;
+    padding:20px 22px;margin-bottom:22px;
+  }
+  .bump .btext{
+    font-family:'Fraunces',serif;font-style:italic;font-size:15.5px;
+    color:var(--paper);margin-bottom:16px;line-height:1.5;
+  }
+  .bump-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .bump-btn{
+    font:inherit;font-size:14px;border-radius:20px;padding:10px 16px;
+    cursor:pointer;min-height:42px;transition:border-color .2s,background .2s,color .2s;
+  }
+  .bump-yes{background:var(--lamp);color:#191410;border:none;font-weight:600;}
+  .bump-yes:hover{background:var(--lamp-hi);}
+  .bump-no{background:transparent;color:var(--paper-dim);border:1px solid var(--edge);}
+  .bump-no:hover{border-color:var(--edge-lit);color:var(--paper);}
   .sum-row{
     display:flex;justify-content:space-between;
     font-size:14.5px;padding:9px 0;
@@ -161,7 +178,15 @@
   </header>
   <div class="demo-tag">Demo checkout, no real charge</div>
 
-  <div id="form-wrap">
+  <div class="bump" id="bump" style="display:none;">
+    <div class="btext" id="bumpText"></div>
+    <div class="bump-row">
+      <button type="button" class="bump-btn bump-yes" id="bumpYes"></button>
+      <button type="button" class="bump-btn bump-no" id="bumpNo">Just this one</button>
+    </div>
+  </div>
+
+  <div id="form-wrap" style="display:none;">
     <div class="summary" id="summary"></div>
 
     <form id="payForm">
@@ -240,35 +265,107 @@
 
   var LABELS={ career:'Career and Finances', love:'Love and Relationships', life:'Life Path and Timing', traits:'Inherent Traits and Potential' };
   var label = LABELS[category] || 'Your reading';
-  var price = topup ? Math.max(6, 24 - ownedCats.length*9) : (bundle ? 24 : 9);
 
   if(!bundle && !topup && !category){ window.location.href='/decision.html'; return; }
 
+  // Order bump: only offered on a single-category checkout, never on a
+  // bundle or top-up purchase where it would be redundant. The recommended
+  // category is genuinely computed from the same check-in answers used on
+  // decision.html, never arbitrary.
+  var extraCategory = null;
+  var checkinsRaw = sessionStorage.getItem('benjamin_checkins');
+  var checkins = {};
+  try{ checkins = checkinsRaw ? JSON.parse(checkinsRaw) : {}; }catch(e){}
+
+  function recommendOther(exclude){
+    var score={career:0, love:0, life:0, traits:0};
+    if(checkins.heart==='complex') score.love+=2;
+    if(checkins.life==='shift') score.love+=1;
+    if(checkins.head==='auto') score.career+=2;
+    if(checkins.fate==='shaky') score.career+=1;
+    if(checkins.life==='steady') score.life+=1;
+    if(checkins.fate==='shaky') score.life+=2;
+    if(checkins.heart==='yes') score.traits+=1;
+    if(checkins.head==='chosen') score.traits+=2;
+    delete score[exclude];
+    var best=null, bestScore=-1;
+    Object.keys(score).forEach(function(k){
+      if(score[k]>bestScore){ best=k; bestScore=score[k]; }
+    });
+    return best;
+  }
+
+  var showBump = !!category && !bundle && !topup;
+  var bumpTarget = showBump ? recommendOther(category) : null;
+  var BUMP_PRICE = 6;
+
+  function currentPrice(){
+    if(topup) return Math.max(6, 24 - ownedCats.length*9);
+    if(bundle) return 24;
+    return extraCategory ? (9 + BUMP_PRICE) : 9;
+  }
+  function currentCategories(){
+    if(bundle||topup) return ALL_CATEGORIES;
+    return extraCategory ? [category, extraCategory] : [category];
+  }
+
   var summary=document.getElementById('summary');
-  if(topup){
-    var missingNames = ALL_CATEGORIES.filter(function(c){ return ownedCats.indexOf(c)===-1; }).map(function(c){ return LABELS[c]; }).join(', ');
-    summary.innerHTML =
-      '<div class="sum-row"><span>Completing your set</span><span class="muted">'+missingNames+'</span></div>' +
-      '<div class="sum-row"><span>Already unlocked</span><span class="muted">'+ownedCats.length+' area'+(ownedCats.length===1?'':'s')+'</span></div>' +
-      '<div class="sum-row total"><span>Total</span><span>$'+price+'</span></div>';
-  } else if(bundle){
-    summary.innerHTML =
-      '<div class="sum-row"><span>All four areas</span><span class="muted">Career, Love, Life Path, Traits</span></div>' +
-      '<div class="sum-row total"><span>Total</span><span>$24</span></div>';
+  var formWrapEl=document.getElementById('form-wrap');
+  var bumpEl=document.getElementById('bump');
+  var payBtn=document.getElementById('payBtn');
+
+  function renderSummary(){
+    var price=currentPrice();
+    if(topup){
+      var missingNames = ALL_CATEGORIES.filter(function(c){ return ownedCats.indexOf(c)===-1; }).map(function(c){ return LABELS[c]; }).join(', ');
+      summary.innerHTML =
+        '<div class="sum-row"><span>Completing your set</span><span class="muted">'+missingNames+'</span></div>' +
+        '<div class="sum-row"><span>Already unlocked</span><span class="muted">'+ownedCats.length+' area'+(ownedCats.length===1?'':'s')+'</span></div>' +
+        '<div class="sum-row total"><span>Total</span><span>$'+price+'</span></div>';
+    } else if(bundle){
+      summary.innerHTML =
+        '<div class="sum-row"><span>All four areas</span><span class="muted">Career, Love, Life Path, Traits</span></div>' +
+        '<div class="sum-row total"><span>Total</span><span>$24</span></div>';
+    } else if(extraCategory){
+      summary.innerHTML =
+        '<div class="sum-row"><span>Full reading</span><span class="muted">'+label+'</span></div>' +
+        '<div class="sum-row"><span>Added</span><span class="muted">'+LABELS[extraCategory]+'</span></div>' +
+        '<div class="sum-row total"><span>Total</span><span>$'+price+'</span></div>';
+    } else {
+      summary.innerHTML =
+        '<div class="sum-row"><span>Full reading</span><span class="muted">'+label+'</span></div>' +
+        '<div class="sum-row total"><span>Total</span><span>$9</span></div>';
+    }
+    payBtn.textContent='Pay $'+price;
+  }
+
+  function proceedToForm(){
+    bumpEl.style.display='none';
+    formWrapEl.style.display='block';
+    renderSummary();
+  }
+
+  if(showBump && bumpTarget && LABELS[bumpTarget]){
+    bumpEl.style.display='block';
+    document.getElementById('bumpText').textContent =
+      'Since you are getting ' + label.toLowerCase() + ', want me to add ' + LABELS[bumpTarget].toLowerCase() + ' too, for $' + BUMP_PRICE + ' more?';
+    document.getElementById('bumpYes').textContent = 'Add it, $' + (9+BUMP_PRICE) + ' total';
+    document.getElementById('bumpYes').addEventListener('click',function(){
+      extraCategory = bumpTarget;
+      proceedToForm();
+    });
+    document.getElementById('bumpNo').addEventListener('click',function(){
+      extraCategory = null;
+      proceedToForm();
+    });
   } else {
-    summary.innerHTML =
-      '<div class="sum-row"><span>Full reading</span><span class="muted">'+label+'</span></div>' +
-      '<div class="sum-row total"><span>Total</span><span>$9</span></div>';
+    proceedToForm();
   }
 
   var form=document.getElementById('payForm');
-  var payBtn=document.getElementById('payBtn');
   var err=document.getElementById('err');
-  var formWrap=document.getElementById('form-wrap');
   var processing=document.getElementById('processing');
   var success=document.getElementById('success');
-
-  payBtn.textContent='Pay $'+price;
 
   var cardNum=document.getElementById('cardNum');
   cardNum.addEventListener('input',function(){
@@ -286,8 +383,17 @@
     e.preventDefault();
     err.style.display='none';
 
-    formWrap.style.display='none';
+    formWrapEl.style.display='none';
     processing.style.display='block';
+
+    // Only pregenerate the incremental bump category here. The base
+    // category (or full set, for bundle/topup) was already kicked off on
+    // page load; re-calling pregenerate for it risks a duplicate in-flight
+    // request since pregenerate only checks the cache, not in-flight state.
+    var finalCategories = currentCategories();
+    if (window.BenjaminReports && extraCategory) {
+      BenjaminReports.pregenerate([extraCategory]);
+    }
 
     var procLabel=document.getElementById('procLabel');
     var procMsgs=['Confirming your payment','Benjamin is starting on your reading','Writing something specific to you'];
@@ -300,8 +406,7 @@
     setTimeout(function(){
       clearInterval(procTimer);
 
-      var categories = (bundle || topup) ? ['career','love','life','traits'] : [category];
-      var owned={ categories: categories, bundle: (bundle||topup) };
+      var owned={ categories: finalCategories, bundle: (bundle||topup) };
       try{ sessionStorage.setItem('benjamin_owned', JSON.stringify(owned)); }catch(x){}
 
       processing.style.display='none';
