@@ -96,6 +96,35 @@
 
   #content{display:none;}
 
+  #consent{
+    display:none;
+    padding:50px 4px 30px;
+  }
+  #consent .avatar{width:44px;height:44px;margin-bottom:16px;}
+  #consent .avatar svg{width:60%;height:60%;}
+  #consent p{
+    font-family:'Fraunces',serif;font-style:italic;
+    font-size:18px;line-height:1.55;
+    color:var(--paper);
+    max-width:42ch;margin-bottom:26px;
+  }
+  .consent-row{display:flex;flex-wrap:wrap;gap:10px;}
+  .consent-btn{
+    font:inherit;font-size:15px;
+    border-radius:2px;padding:14px 22px;
+    cursor:pointer;min-height:46px;
+    transition:background .2s,border-color .2s;
+  }
+  .consent-open{
+    background:var(--lamp);color:#191410;border:none;font-weight:600;
+  }
+  .consent-open:hover{background:var(--lamp-hi);}
+  .consent-leave{
+    background:transparent;color:var(--paper-dim);
+    border:1px solid var(--edge);
+  }
+  .consent-leave:hover{border-color:var(--edge-lit);color:var(--paper);}
+
   .hook{
     font-family:'Fraunces',serif;font-weight:300;font-style:italic;
     font-size:clamp(21px,3.6vw,27px);
@@ -182,6 +211,15 @@
     </div>
   </header>
 
+  <div id="consent">
+    <div class="avatar" id="consentAvatar" aria-hidden="true"></div>
+    <p id="consentText">I have written what comes next specifically for you, based on everything you have told me so far. Ask me to open it, or tell me to leave it. I will do either.</p>
+    <div class="consent-row">
+      <button type="button" class="consent-btn consent-open" id="consentOpen">Open it</button>
+      <button type="button" class="consent-btn consent-leave" id="consentLeave">Leave it for now</button>
+    </div>
+  </div>
+
   <div id="load">
     <div class="writing">
       <div class="ring"></div>
@@ -218,7 +256,7 @@
 
     <div class="guarantee">
       <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.4"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div>If it does not feel true to you, tell us and we will refund it. No argument, no forms to fight through.</div>
+      <div>The risk here is mine, not yours. If it does not feel true, tell us and we return it. No argument, no forms to fight through.</div>
     </div>
   </div>
 
@@ -243,15 +281,17 @@
   loadAv.innerHTML=BENJAMIN_SVG; loadAv.style.color='var(--lamp-hi)';
   var goAv=document.getElementById('goAvatar');
   goAv.innerHTML=BENJAMIN_SVG; goAv.style.color='var(--lamp-hi)';
+  var consentAv=document.getElementById('consentAvatar');
+  consentAv.innerHTML=BENJAMIN_SVG; consentAv.style.color='var(--lamp-hi)';
 
   var loadMessages=['Weighing what matters here','Choosing the right words','Following that thread','Almost there'];
   var loadIdx=0;
   var loadStatus=document.getElementById('loadStatus');
-  var loadTimer=setInterval(function(){
-    loadIdx=(loadIdx+1)%loadMessages.length;
-    loadStatus.textContent=loadMessages[loadIdx];
-  },1700);
+  var loadTimer=null;
 
+  var consent=document.getElementById('consent');
+  var consentOpen=document.getElementById('consentOpen');
+  var consentLeave=document.getElementById('consentLeave');
   var load=document.getElementById('load');
   var content=document.getElementById('content');
   var err=document.getElementById('err');
@@ -271,6 +311,7 @@
   var checkinsRaw=sessionStorage.getItem('benjamin_checkins');
   var checkins={};
   try{ checkins=checkinsRaw?JSON.parse(checkinsRaw):{}; }catch(e){}
+  var freetext=sessionStorage.getItem('benjamin_freetext_reading')||'';
 
   var LABELS={ career:'Career and Finances', love:'Love and Relationships', life:'Life Path and Timing', traits:'Inherent Traits and Potential' };
   var label=LABELS[category]||'this part of your life';
@@ -279,6 +320,27 @@
 
   catLabel.textContent=label;
   offerCat.textContent=label;
+
+  // Consent gate: nothing is fetched or shown until the visitor actually
+  // asks for it. Load state stays hidden until "Open it" is chosen.
+  load.style.display='none';
+  consent.style.display='flex';
+  consent.style.flexDirection='column';
+  consent.style.alignItems='flex-start';
+
+  consentOpen.addEventListener('click',function(){
+    consent.style.display='none';
+    load.style.display='block';
+    loadIdx=0;
+    loadTimer=setInterval(function(){
+      loadIdx=(loadIdx+1)%loadMessages.length;
+      loadStatus.textContent=loadMessages[loadIdx];
+    },1700);
+    go();
+  });
+  consentLeave.addEventListener('click',function(){
+    window.location.href='/decision.html';
+  });
 
   function goToCheckout(url, text){
     goText.textContent=text;
@@ -324,7 +386,7 @@
       var res=await fetch('/api/benjamin-sales',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ category:label, reading:reading, checkins:checkins, mcAnswer:mcAnswer, name:name })
+        body:JSON.stringify({ category:label, reading:reading, checkins:checkins, mcAnswer:mcAnswer, name:name, freetext:freetext })
       });
       var d=await res.json();
       if(d.rateLimited){ throw d.message; }
@@ -356,7 +418,6 @@
       err.appendChild(a);
     }
   }
-  go();
 })();
 </script>
 
