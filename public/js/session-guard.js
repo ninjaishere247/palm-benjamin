@@ -9,7 +9,7 @@
 // way manually closing the tab used to fix these issues, but automatic and
 // guaranteed rather than depending on remembering to do it.
 (function () {
-  var APP_VERSION = '2026-09-04.1';
+  var APP_VERSION = '2026-09-11.2';
   var VERSION_KEY = 'benjamin_schema_version';
 
   try {
