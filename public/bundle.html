@@ -59,12 +59,33 @@
     padding:18px 17px;position:relative;
   }
   .item.owned{border-color:var(--good);background:rgba(127,174,138,0.06);}
+  .item.starts{border-color:var(--edge-lit);background:rgba(224,162,74,0.06);}
   .item h3{font-family:'Fraunces',serif;font-weight:400;font-size:16.5px;margin-bottom:7px;}
   .item p{font-size:13px;color:var(--paper-dim);line-height:1.55;}
   .tag{
     display:inline-block;font-size:10.5px;letter-spacing:.05em;
     color:var(--good);border:1px solid rgba(127,174,138,.4);
     border-radius:12px;padding:2px 9px;margin-top:10px;
+  }
+  .tag.starts{color:var(--lamp-hi);border-color:rgba(224,162,74,.4);}
+
+  #narrating{text-align:center;padding:80px 10px;}
+  #narrating .avatar{width:56px;height:56px;margin:0 auto 20px;}
+  #narrating .ring{
+    position:absolute;inset:-6px;border-radius:50%;
+    border:1.5px solid transparent;border-top-color:var(--lamp);border-right-color:var(--lamp);
+    animation:orbit 1.4s linear infinite;
+  }
+  #narrating .writing{width:56px;height:56px;margin:0 auto 20px;position:relative;}
+  #narrating .writing .avatar{width:100%;height:100%;margin:0;}
+  @keyframes orbit{ to{ transform:rotate(360deg); } }
+  #narrating p{color:var(--muted);font-size:13.5px;font-family:'Fraunces',serif;font-style:italic;}
+  #stackBody{display:none;}
+  .reveal{opacity:0;transform:translateY(10px);animation:revealIn .5s ease forwards;}
+  @keyframes revealIn{ to{opacity:1;transform:none;} }
+
+  @media (prefers-reduced-motion:reduce){
+    .reveal{animation:none;opacity:1;transform:none;}
   }
 
   .price-block{
@@ -122,24 +143,34 @@
     </div>
   </header>
 
-  <div class="lede" id="ledeText">You already felt this pulling at more than one part of your life.</div>
-  <div class="sub">Here is what each area actually covers, based on the same reading you just went through.</div>
-
-  <div class="grid" id="grid"></div>
-
-  <div class="price-block">
-    <div class="compare">
-      <span>Buying each separately</span>
-      <span class="strike">$36</span>
+  <div id="narrating">
+    <div class="writing">
+      <div class="ring"></div>
+      <div class="avatar" id="narratingAvatar"></div>
     </div>
-    <div class="big">$24 <span>for all four, one time</span></div>
-    <button type="button" class="cta" id="bundleBtn">Get all four for $24</button>
-    <div class="alt">Or <a href="#" id="singleLink">just get one area for $9</a></div>
+    <p id="narratingStatus">Going over everything you have told me</p>
   </div>
 
-  <div class="guarantee">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.4"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <div>If any part of it does not feel true to you, tell us and we will refund it. No argument.</div>
+  <div id="stackBody">
+    <div class="lede" id="ledeText">You already felt this pulling at more than one part of your life.</div>
+    <div class="sub" id="subText">Here is what each area actually covers, based on the same reading you just went through.</div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="price-block">
+      <div class="compare">
+        <span>Buying each separately</span>
+        <span class="strike">$36</span>
+      </div>
+      <div class="big">$24 <span>for all four, one time</span></div>
+      <button type="button" class="cta" id="bundleBtn">Get all four for $24</button>
+      <div class="alt">Or <a href="#" id="singleLink">just get one area for $9</a></div>
+    </div>
+
+    <div class="guarantee">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.4"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>The risk here is mine, not yours. If any part of it does not feel true to you, tell us and we will refund it. No argument.</div>
+    </div>
   </div>
 </div>
 
@@ -170,6 +201,8 @@
   var reading=sessionStorage.getItem('benjamin_reading')||'';
   var category=sessionStorage.getItem('benjamin_category')||'';
   var name=sessionStorage.getItem('benjamin_name')||'';
+  var bundleFocus=sessionStorage.getItem('benjamin_bundle_focus')||'';
+  var bundleFreetext=sessionStorage.getItem('benjamin_freetext_bundle')||'';
 
   if(!reading){ window.location.href='/optin.html'; return; }
 
@@ -194,24 +227,82 @@
     return r;
   }
   var clashClose = lastSentence(parseMarkers(reading).CLASH);
-  if(clashClose){
-    document.getElementById('ledeText').textContent = clashClose;
+
+  // Personalize the lede honestly depending on how the visitor arrived here.
+  // We never claim more certainty than the data actually supports: the
+  // free-text answer is acknowledged as context Benjamin is keeping in mind,
+  // never as something the reading already knew.
+  var ledeEl=document.getElementById('ledeText');
+  var subEl=document.getElementById('subText');
+  if(category){
+    // Arrived after already choosing one category (existing upsell path).
+    if(clashClose) ledeEl.textContent = clashClose;
+    subEl.textContent = 'Here is what each other area actually covers, based on the same reading you just went through.';
+  } else if(bundleFocus && LABELS[bundleFocus]){
+    var focusLabel = LABELS[bundleFocus];
+    ledeEl.textContent = clashClose
+      ? clashClose + ' You told me ' + focusLabel.toLowerCase() + ' is what is pulling loudest right now.'
+      : 'You told me ' + focusLabel.toLowerCase() + ' is what is pulling loudest right now.';
+    subEl.textContent = bundleFreetext
+      ? 'That does not cancel out the other three, it just tells me where to start. I am keeping what you told me in mind for all four.'
+      : 'That does not cancel out the other three, it just tells me where to start.';
+  } else if(clashClose){
+    ledeEl.textContent = clashClose;
   }
 
   var grid=document.getElementById('grid');
   Object.keys(LABELS).forEach(function(k){
     var div=document.createElement('div');
-    div.className='item'+(k===category?' owned':'');
+    var isOwned = k===category;
+    var isStart = !category && k===bundleFocus;
+    div.className='item'+(isOwned?' owned':'')+(isStart?' starts':'');
     var h=document.createElement('h3'); h.textContent=LABELS[k];
     var p=document.createElement('p'); p.textContent=DESCS[k];
     div.appendChild(h); div.appendChild(p);
-    if(k===category){
+    if(isOwned){
       var tag=document.createElement('span');
       tag.className='tag'; tag.textContent='Already unlocked';
       div.appendChild(tag);
+    } else if(isStart){
+      var tag2=document.createElement('span');
+      tag2.className='tag starts'; tag2.textContent='Starts here';
+      div.appendChild(tag2);
     }
     grid.appendChild(div);
   });
+
+  // Narrate briefly before revealing the offer, rather than showing it
+  // instantly. Mirrors the same "give me a moment" rhythm used elsewhere.
+  var narrating=document.getElementById('narrating');
+  var stackBody=document.getElementById('stackBody');
+  var narratingStatus=document.getElementById('narratingStatus');
+  var narrateMessages = bundleFocus
+    ? ['Going over everything you have told me', 'Starting with ' + (LABELS[bundleFocus]||'').toLowerCase(), 'Laying out all four areas']
+    : ['Going over everything you have told me', 'Laying out all four areas', 'Almost there'];
+  var slow=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var narrateIdx=0;
+  var narrateTimer=setInterval(function(){
+    narrateIdx=(narrateIdx+1)%narrateMessages.length;
+    narratingStatus.textContent=narrateMessages[narrateIdx];
+  }, 700);
+
+  setTimeout(function(){
+    clearInterval(narrateTimer);
+    narrating.style.display='none';
+    stackBody.style.display='block';
+
+    var ledeGroup=[ledeEl, subEl];
+    ledeGroup.forEach(function(el){ el.classList.add('reveal'); });
+    grid.classList.add('reveal');
+    if(!slow) grid.style.animationDelay='.15s';
+    var priceBlock=document.querySelector('.price-block');
+    var guaranteeBlock=document.querySelector('.guarantee');
+    [priceBlock, guaranteeBlock].forEach(function(el){
+      if(!el) return;
+      el.classList.add('reveal');
+      if(!slow) el.style.animationDelay='.3s';
+    });
+  }, slow ? 0 : 2100);
 
   var goingOver=document.getElementById('goingOver');
   var goText=document.getElementById('goText');
@@ -226,7 +317,8 @@
   });
   document.getElementById('singleLink').addEventListener('click',function(e){
     e.preventDefault();
-    var url = category ? ('/checkout.html?category='+encodeURIComponent(category)) : '/decision.html';
+    var singleCat = category || bundleFocus;
+    var url = singleCat ? ('/checkout.html?category='+encodeURIComponent(singleCat)) : '/decision.html';
     go(url, 'Taking you to checkout');
   });
 })();
