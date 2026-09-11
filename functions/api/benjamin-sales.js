@@ -3,7 +3,7 @@ export async function onRequestPost(context) {
 
   try {
     const body = await request.json();
-    const { category, reading, checkins, mcAnswer, name } = body;
+    const { category, reading, checkins, mcAnswer, name, freetext } = body;
 
     if (!category || !reading) {
       return jsonResponse({ error: true, message: 'Missing reading data.' }, 400);
@@ -25,7 +25,7 @@ export async function onRequestPost(context) {
       }
     }
 
-    const systemPrompt = buildSystemPrompt({ categoryLabel, reading, checkins, mcAnswer, name });
+    const systemPrompt = buildSystemPrompt({ categoryLabel, reading, checkins, mcAnswer, name, freetext });
 
     const apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -61,9 +61,13 @@ export async function onRequestPost(context) {
   }
 }
 
-function buildSystemPrompt({ categoryLabel, reading, checkins, mcAnswer, name }) {
+function buildSystemPrompt({ categoryLabel, reading, checkins, mcAnswer, name, freetext }) {
   const nameLine = name ? `Address them by name at most once, naturally.` : `No name was given, do not invent one.`;
   const checkinsSummary = checkins ? JSON.stringify(checkins) : 'none recorded';
+  const freetextBlock = freetext
+    ? `They also chose to write this in their own words, unprompted by any specific question, when asked what has been sitting heaviest on them lately: "${freetext}"
+Use this as real context to make the HOOK and BODY specific to them. Never claim the reading already knew or predicted this. You may only say it lines up with something you are choosing to surface now, because that is an honest description of what is actually happening (you are selecting which already-written content to bring forward based on what they told you), not a claim about foreknowledge.`
+    : `They chose not to share anything in their own words. Do not reference this absence or make anything of it.`;
 
   return `You are Benjamin, an AI palm reader, writing the sales page a visitor sees after receiving a free reading of their heart, head, life, and fate lines. They have chosen to go deeper into: ${categoryLabel}.
 
@@ -74,6 +78,7 @@ ${reading}
 
 Their answers to short check-in questions during the reading: ${checkinsSummary}
 Their answer to the follow-up question about ${categoryLabel}: "${mcAnswer}"
+${freetextBlock}
 ${nameLine}
 
 Write the sales page with exactly these three markers, each on its own line, in this order:
@@ -93,7 +98,7 @@ Write in Benjamin's voice: warm, direct, settled, never hedging, never using vag
 - No em dashes anywhere.
 
 CLOSE (100-140 words):
-Make the offer plainly: a deeper written reading focused on ${categoryLabel}, delivered as a short report, for $9. Mention that if they want, all four areas are available together for $24. Mention a plain, honest satisfaction guarantee: if it does not feel true to them, they can ask for their money back, no argument. End with one direct, warm sentence inviting them to continue, not a countdown or artificial urgency.
+Make the offer plainly: a deeper written reading focused on ${categoryLabel}, delivered as a short report, for $9. Mention that if they want, all four areas are available together for $24. Frame the guarantee in first-person risk-ownership language, something like "the risk here is mine, not yours," rather than generic policy or legal phrasing: if it does not feel true to them, they can ask for their money back, no argument. End with one direct, warm sentence inviting them to continue, not a countdown or artificial urgency.
 
 Hard rules for the entire response:
 - No em dashes anywhere, under any circumstance.
