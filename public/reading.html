@@ -517,7 +517,11 @@
     b.appendChild(p);
     f.body.appendChild(b);
     toBottom();
-    await type(p,text,opts.aside?34:46);
+    if(opts.instant){
+      p.textContent=text;
+    } else {
+      await type(p,text,opts.aside?34:46);
+    }
     toBottom();
     return f;
   }
@@ -662,7 +666,7 @@
       var back=cfg.check.back[a];
       if(back){
         await pause(900);
-        await say(back,{aside:true});
+        await say(back,{aside:true,instant:true});
       }
     }
     await wait(650);
@@ -729,6 +733,9 @@
       }
     });
 
+    await pause(900);
+    await say('Wait.',{aside:true,instant:true});
+    await wait(400);
     await pause(1100);
     await say('Give me a moment. I want to be certain before I put this together.',{aside:true});
     await pause(1400);
@@ -745,7 +752,9 @@
     try{ sessionStorage.setItem('benjamin_freetext_reading', freetext||''); }catch(e){}
     if(freetext){
       await pause(750);
-      await say('That matters. I will keep it in mind for what comes next.',{aside:true});
+      await say('That matters.',{aside:true,instant:true});
+      await wait(300);
+      await say('I will keep it in mind for what comes next.',{aside:true});
     }
 
     hstate.textContent='Reading complete';
