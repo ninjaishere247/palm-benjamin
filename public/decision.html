@@ -100,6 +100,19 @@
   .card:active:not(:disabled){transform:translateY(1px);}
   .card:disabled{opacity:.35;cursor:default;}
   .card.chosen{border-color:var(--lamp);background:rgba(224,162,74,.09);}
+  .card.bundle{
+    grid-column:1 / -1;
+    border-color:var(--edge-lit);
+    background:linear-gradient(135deg, rgba(224,162,74,.10), var(--card) 65%);
+  }
+  .card.bundle .anchor{
+    display:flex;align-items:baseline;gap:8px;margin-top:10px;
+    font-family:'Fraunces',serif;font-size:15px;color:var(--lamp-hi);
+  }
+  .card.bundle .anchor .strike{
+    font-size:12.5px;color:var(--muted);text-decoration:line-through;
+    font-family:'Inter',sans-serif;
+  }
   .card h3{
     font-family:'Fraunces',serif;font-weight:400;font-size:18px;margin-bottom:7px;
   }
@@ -321,6 +334,43 @@
     f.msg.scrollIntoView({behavior:'smooth',block:'end'});
   }
 
+  function askText(prompt,placeholder){
+    return new Promise(function(res){
+      var f=frame('benjamin');
+      var b=document.createElement('div');
+      b.className='bub aside'; b.textContent=prompt;
+      f.body.appendChild(b);
+
+      var input=document.createElement('textarea');
+      input.rows=2; input.maxLength=280;
+      input.placeholder=placeholder||'Type as much or as little as you want';
+      input.style.cssText='width:100%;margin-top:10px;background:var(--card);border:1px solid var(--edge);border-radius:8px;color:var(--paper);font:inherit;font-size:15px;padding:12px 14px;resize:none;';
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;';
+      var submitBtn=document.createElement('button');
+      submitBtn.type='button'; submitBtn.className='pick'; submitBtn.textContent='Share this';
+      var skipBtn=document.createElement('button');
+      skipBtn.type='button'; skipBtn.className='pick'; skipBtn.textContent='I would rather not say';
+
+      function finish(val){
+        input.remove(); row.remove();
+        if(val) sayYou(val);
+        setTimeout(function(){ res(val||''); },260);
+      }
+      submitBtn.addEventListener('click',function(){
+        var val=input.value.trim();
+        if(val.length<3){ input.focus(); return; }
+        finish(val);
+      });
+      skipBtn.addEventListener('click',function(){ finish(''); });
+
+      row.appendChild(submitBtn); row.appendChild(skipBtn);
+      f.body.appendChild(input); f.body.appendChild(row);
+      f.msg.scrollIntoView({behavior:'smooth',block:'end'});
+      input.focus();
+    });
+  }
+
   // ---- light recommendation heuristic from checkpoint answers ----
   function recommend(){
     var score={career:0, love:0, life:0, traits:0};
@@ -484,6 +534,24 @@
         grid.appendChild(btn);
         buttons.push(btn);
       });
+
+      var bundleBtn=document.createElement('button');
+      bundleBtn.type='button'; bundleBtn.className='card bundle';
+      var bh=document.createElement('h3'); bh.textContent='Give me the whole picture';
+      var bp=document.createElement('p'); bp.textContent='All four areas, read together. This is where most people end up anyway.';
+      var anchor=document.createElement('div'); anchor.className='anchor';
+      anchor.innerHTML='<span class="strike">$36 separately</span><span>$24 today</span>';
+      bundleBtn.appendChild(bh); bundleBtn.appendChild(bp); bundleBtn.appendChild(anchor);
+      bundleBtn.addEventListener('click',function(){
+        buttons.forEach(function(b2){ b2.disabled=true; });
+        bundleBtn.disabled=true;
+        bundleBtn.classList.add('chosen');
+        sayYou('Give me the whole picture');
+        setTimeout(function(){ res('BUNDLE'); },280);
+      });
+      grid.appendChild(bundleBtn);
+      buttons.push(bundleBtn);
+
       wrap.appendChild(grid);
       f.body.appendChild(wrap);
       f.msg.scrollIntoView({behavior:'smooth',block:'end'});
@@ -506,9 +574,36 @@
     await wait(600);
 
     var category = await showCards();
+
+    if(category === 'BUNDLE'){
+      await wait(500);
+      say("That tells me where to start, even reading all four.", {aside:true});
+      await wait(1100);
+      var bundleMC={
+        q:'Of the four, which one is pulling loudest right now?',
+        opts:[{label:'Career and Finances',value:'career'},{label:'Love and Relationships',value:'love'},{label:'Life Path and Timing',value:'life'},{label:'Inherent Traits',value:'traits'}]
+      };
+      var bundleFocus = await ask(bundleMC.q, bundleMC.opts);
+      sessionStorage.setItem('benjamin_bundle_focus', bundleFocus);
+
+      await wait(500);
+      var bundleFreetext = await askText('Say more about that, if you want.', 'Whatever comes to mind');
+      try{ sessionStorage.setItem('benjamin_freetext_bundle', bundleFreetext||''); }catch(e){}
+
+      await wait(500);
+      say("Give me a moment. Let me put the whole thing together for you.", {aside:true});
+      await wait(900);
+      document.getElementById('goingOver').classList.add('on');
+      await wait(650);
+      window.location.href = '/bundle.html';
+      return;
+    }
+
     sessionStorage.setItem('benjamin_category', category);
 
     await wait(500);
+    say("That changes what I would look at first.", {aside:true});
+    await wait(1100);
     var mc = MC[category];
     var mcAnswer = await ask(mc.q, mc.opts);
     sessionStorage.setItem('benjamin_mc_answer', mcAnswer);
