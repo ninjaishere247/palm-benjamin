@@ -558,6 +558,56 @@
     toBottom();
   }
 
+  // Free-text moment: used sparingly (once per major beat), always skippable.
+  // Benjamin acknowledges the specific words back honestly. He never claims
+  // the reading already knew or predicted what was typed here, only that
+  // it will be kept in mind going forward.
+  function askText(prompt,opts){
+    opts=opts||{};
+    return new Promise(function(res){
+      var f=frame('benjamin');
+      var b=document.createElement('div');
+      b.className='bub aside';
+      var p=document.createElement('div');
+      b.appendChild(p);
+      f.body.appendChild(b);
+
+      var wrap=document.createElement('div');
+      wrap.style.marginTop='11px';
+      var input=document.createElement('textarea');
+      input.rows=2;
+      input.maxLength=280;
+      input.placeholder=opts.placeholder||'Type as much or as little as you want';
+      input.style.cssText='width:100%;background:var(--card);border:1px solid var(--edge);border-radius:8px;color:var(--paper);font:inherit;font-size:15px;padding:12px 14px;resize:none;';
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;';
+      var submitBtn=document.createElement('button');
+      submitBtn.type='button'; submitBtn.className='pick';
+      submitBtn.textContent='Share this';
+      var skipBtn=document.createElement('button');
+      skipBtn.type='button'; skipBtn.className='pick';
+      skipBtn.textContent='I would rather not say';
+
+      function finish(val){
+        wrap.remove();
+        if(val) say2You(val);
+        setTimeout(function(){ res(val||''); },260);
+      }
+      submitBtn.addEventListener('click',function(){
+        var val=input.value.trim();
+        if(val.length<3){ input.focus(); return; }
+        finish(val);
+      });
+      skipBtn.addEventListener('click',function(){ finish(''); });
+
+      row.appendChild(submitBtn); row.appendChild(skipBtn);
+      wrap.appendChild(input); wrap.appendChild(row);
+      f.body.appendChild(wrap);
+      toBottom();
+      type(p,prompt,34).then(function(){ toBottom(); input.focus(); });
+    });
+  }
+
   function chunk(text,n){
     var s=text.match(/[^.!?]+[.!?]+(\s+|$)/g)||[text];
     var out=[];
@@ -637,7 +687,7 @@
 
     await line({
       tag:'HEART LINE', text:s.HEART,
-      intro:'Starting with the heart line.',
+      intro:'Give me a moment with the heart line. I want to look at this properly before I say anything.',
       check:{
         key:'heart',
         q:'Is that how you actually love, or how people assume you love?',
@@ -648,7 +698,7 @@
 
     await line({
       tag:'HEAD LINE', text:s.HEAD,
-      intro:'Now the head line. This one usually tells on people.',
+      intro:'Hold on. I want to be certain of what the head line is showing before I say it.',
       check:{
         key:'head',
         q:'Do you decide that way on purpose, or does it just happen?',
@@ -659,7 +709,7 @@
 
     await line({
       tag:'LIFE LINE', text:s.LIFE,
-      intro:'Give me a second with the life line.',
+      intro:'Give me a second with the life line. I want to be sure before I say it.',
       check:{
         key:'life',
         q:'Has this been true for a while, or has something shifted lately?',
@@ -670,7 +720,7 @@
 
     await line({
       tag:'FATE LINE', text:s.FATE,
-      intro:'And the fate line. There is something here.',
+      intro:'One more moment. There is something in the fate line I want to name carefully.',
       check:{
         key:'fate',
         q:'Does your sense of direction feel steady right now, or shaky?',
@@ -679,11 +729,24 @@
       }
     });
 
+    await pause(1100);
+    await say('Give me a moment. I want to be certain before I put this together.',{aside:true});
     await pause(1400);
     await say(s.CLASH,{mark:true,tag:'WHAT I NOTICED'});
     await wait(readPause(s.CLASH) + 400);
 
     try{ sessionStorage.setItem('benjamin_checkins',JSON.stringify(answers)); }catch(e){}
+
+    await wait(500);
+    var freetext = await askText(
+      "Before I show you where this actually shows up for you, tell me in your own words. What has been sitting heaviest on you lately?",
+      {placeholder:'A person, a decision, a feeling, anything'}
+    );
+    try{ sessionStorage.setItem('benjamin_freetext_reading', freetext||''); }catch(e){}
+    if(freetext){
+      await pause(750);
+      await say('That matters. I will keep it in mind for what comes next.',{aside:true});
+    }
 
     hstate.textContent='Reading complete';
     hstate.classList.remove('live');
